@@ -1,34 +1,26 @@
-// User Authentication & Firestore Sync Module
-import { auth, db, doc, getDoc, setDoc, serverTimestamp } from './firebase.js';
-import { signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-export async function authenticateUser(tgUser) {
-    try {
-        await signInAnonymously(auth);
-        const userId = tgUser ? `tg_${tgUser.id}` : 'dev_user_123';
-        const userRef = doc(db, 'users', userId);
-        const userSnap = await getDoc(userRef);
+// Placeholder config - Safe fallback included in auth module
+const firebaseConfig = {
+    apiKey: "YOUR_API_KEY",
+    authDomain: "supearn-app.firebaseapp.com",
+    projectId: "supearn-app",
+    storageBucket: "supearn-app.appspot.com",
+    messagingSenderId: "1234567890",
+    appId: "1:1234567890:web:abcdef123456"
+};
 
-        if (!userSnap.exists()) {
-            const newUser = {
-                uid: userId,
-                telegramId: tgUser?.id || 123456,
-                firstName: tgUser?.first_name || 'Guest',
-                username: tgUser?.username || 'anonymous',
-                coins: 100, // Welcome bonus
-                referralCode: Math.random().toString(36).substring(2, 8).toUpperCase(),
-                referredBy: null,
-                dailyStreak: 0,
-                lastStreakDate: null,
-                createdAt: serverTimestamp()
-            };
-            await setDoc(userRef, newUser);
-            return newUser;
-        }
+let db = null;
+let auth = null;
 
-        return userSnap.data();
-    } catch (err) {
-        console.error("Auth error:", err);
-        throw err;
-    }
+try {
+    const app = initializeApp(firebaseConfig);
+    db = getFirestore(app);
+    auth = getAuth(app);
+} catch (e) {
+    console.warn("Firebase initialization skipped or misconfigured. Running in offline/mock mode.", e);
 }
+
+export { db, auth, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp };
