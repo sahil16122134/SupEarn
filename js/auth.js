@@ -1,20 +1,40 @@
-// Firebase Initialization Module
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { auth, db, doc, getDoc, setDoc, serverTimestamp } from './firebase.js';
+import { signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// TODO: Replace with your actual Firebase project configuration credentials
-const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "supearn-app.firebaseapp.com",
-    projectId: "supearn-app",
-    storageBucket: "supearn-app.appspot.com",
-    messagingSenderId: "1234567890",
-    appId: "1:1234567890:web:abcdef123456"
-};
+export async function authenticateUser(tgUser) {
+    const defaultUser = {
+        uid: tgUser ? `tg_${tgUser.id}` : 'dev_user_123',
+        telegramId: tgUser?.id || 123456,
+        firstName: tgUser?.first_name || 'Demo User',
+        username: tgUser?.username || 'demouser',
+        coins: 100,
+        referralCode: 'SUP123',
+        dailyStreak: 1
+    };
 
-const app = initializeApp(firebaseConfig);
-export const db = getFirestore(app);
-export const auth = getAuth(app);
+    // If Firebase isn't initialized or credentials are demo placeholders, use local mock user
+    if (!auth || !db || auth.app.options.apiKey === "YOUR_API_KEY") {
+        console.warn("Using Local Storage user fallback.");
+        const stored = localStorage.getItem('supearn_mock_user');
+        if (stored) return JSON.parse(stored);
+        
+        localStorage.setItem('supearn_mock_user', JSON.stringify(defaultUser));
+        return defaultUser;
+    }
 
-export { doc, getDoc, setDoc, updateDoc, increment, serverTimestamp };
+    try {
+        await signInAnonymously(auth);
+        const userRef = doc(db, 'users', defaultUser.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (!userSnap.exists()) {
+            await setDoc(userRef, { ...defaultUser, createdAt: serverTimestamp() });
+            return defaultUser;
+        }
+
+        return userSnap.data();
+    } catch (err) {
+        console.warn("Firebase Auth Error, falling back to local mode:", err);
+        return defaultUser;
+    }
+}
