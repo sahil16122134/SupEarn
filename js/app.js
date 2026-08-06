@@ -1,4 +1,3 @@
-// Main Application Controller Entrypoint
 import { initTelegramApp, triggerHaptic } from './telegram.js';
 import { authenticateUser } from './auth.js';
 import { state } from './settings.js';
@@ -12,39 +11,36 @@ import { openReferralModal } from './referral.js';
 import { setupAdminTriggers } from './admin.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
+    const splash = document.getElementById('splash-screen');
     const { isTelegram, user: tgUser } = initTelegramApp();
-
-    if (!isTelegram && window.location.hostname !== 'localhost') {
-        document.getElementById('telegram-fallback')?.classList.remove('hidden');
-        document.getElementById('splash-screen')?.classList.add('hidden');
-        return;
-    }
 
     try {
         state.user = await authenticateUser(tgUser);
         
-        // Hide splash screen & show main application UI
-        document.getElementById('splash-screen')?.classList.add('hidden');
+        // Unhide core UI elements safely
+        splash?.classList.add('hidden');
         document.getElementById('main-header')?.classList.remove('hidden');
         document.getElementById('app-content')?.classList.remove('hidden');
         document.getElementById('bottom-nav')?.classList.remove('hidden');
 
-        // Render User Info Header
-        document.getElementById('user-display-name').innerText = state.user.firstName;
-        document.getElementById('user-telegram-handle').innerText = `@${state.user.username}`;
+        // Render User Header Details
+        const nameElem = document.getElementById('user-display-name');
+        const handleElem = document.getElementById('user-telegram-handle');
+        if (nameElem) nameElem.innerText = state.user.firstName;
+        if (handleElem) handleElem.innerText = `@${state.user.username}`;
 
-        // Initial Route Render
+        // Render Home Screen
         const appContent = document.getElementById('app-content');
         renderHomeView(appContent);
 
-        // Bind Navigation Tabs
+        // Bind Nav Tabs
         const navHome = document.getElementById('nav-home');
         const navTasks = document.getElementById('nav-tasks');
 
         navHome?.addEventListener('click', () => {
             triggerHaptic('light');
             navHome.classList.add('active');
-            navTasks.classList.remove('active');
+            navTasks?.classList.remove('active');
             renderHomeView(appContent);
             bindHomeEvents();
         });
@@ -52,7 +48,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         navTasks?.addEventListener('click', () => {
             triggerHaptic('light');
             navTasks.classList.add('active');
-            navHome.classList.remove('active');
+            navHome?.classList.remove('active');
             renderTasksView(appContent);
         });
 
@@ -61,7 +57,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (err) {
         console.error("Initialization Failed:", err);
-        showToast("Error starting app. Please try again.", 'error');
+        if (splash) splash.classList.add('hidden');
+        document.getElementById('app-content')?.classList.remove('hidden');
+        showToast("Started in offline preview mode.", 'warning');
     }
 });
 
@@ -71,8 +69,6 @@ function bindHomeEvents() {
 
     document.getElementById('quick-watch-btn')?.addEventListener('click', async () => {
         triggerHaptic('medium');
-        
-        // Primary: Try Adsgram; Fallback: Try Adeasly
         const adsgramSuccess = await adsgram.showAd();
         if (!adsgramSuccess) {
             await adeasly.showAd();
