@@ -1,0 +1,29 @@
+/* Responsive Tweaks */
+@media (max-width: 360px) {
+    .main-content {
+        padding: 10px;
+    }
+    .glass-card {
+        padding: 14px;
+    }
+    .header-title {
+        font-size: 0.95rem;
+    }
+}
+
+@media (min-width: 600px) {
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background-size: cover;
+    }
+    .app-container {
+        border-left: 1px solid var(--glass-border);
+        border-right: 1px solid var(--glass-border);
+        box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        height: 100vh;
+        overflow-y: auto;
+    }
+}
