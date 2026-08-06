@@ -2,7 +2,6 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebas
 import { getFirestore, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
-// Placeholder config - Safe fallback included in auth module
 const firebaseConfig = {
     apiKey: "YOUR_API_KEY",
     authDomain: "supearn-app.firebaseapp.com",
@@ -12,15 +11,17 @@ const firebaseConfig = {
     appId: "1:1234567890:web:abcdef123456"
 };
 
+let app = null;
 let db = null;
 let auth = null;
 
 try {
-    const app = initializeApp(firebaseConfig);
+    app = initializeApp(firebaseConfig);
     db = getFirestore(app);
     auth = getAuth(app);
 } catch (e) {
-    console.warn("Firebase initialization skipped or misconfigured. Running in offline/mock mode.", e);
+    console.warn("Firebase failed to initialize. Running in offline mode.", e);
 }
 
-export { db, auth, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp };
+// Explicitly export auth alongside all required Firestore functions
+export { app, db, auth, signInAnonymously, doc, getDoc, setDoc, updateDoc, increment, serverTimestamp };
