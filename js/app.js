@@ -5,7 +5,7 @@ import { state } from './settings.js';
 import { showToast } from './ui.js';
 import { renderHomeView } from './home.js';
 import { renderTasksView } from './tasks.js';
-import { initAdsgram } from './watch.js';
+import { initAdsgram, initAdeasly } from './watch.js';
 import { openDailyBonusModal } from './daily.js';
 import { openRedeemModal } from './redeem.js';
 import { openReferralModal } from './referral.js';
@@ -67,10 +67,16 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 function bindHomeEvents() {
     const adsgram = initAdsgram();
+    const adeasly = initAdeasly();
 
-    document.getElementById('quick-watch-btn')?.addEventListener('click', () => {
+    document.getElementById('quick-watch-btn')?.addEventListener('click', async () => {
         triggerHaptic('medium');
-        adsgram.showAd();
+        
+        // Primary: Try Adsgram; Fallback: Try Adeasly
+        const adsgramSuccess = await adsgram.showAd();
+        if (!adsgramSuccess) {
+            await adeasly.showAd();
+        }
     });
 
     document.getElementById('quick-daily-btn')?.addEventListener('click', () => {
