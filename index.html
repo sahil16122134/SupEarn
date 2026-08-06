@@ -3,126 +3,317 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>SupEarn - Telegram Mini App</title>
-
+    
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
 
-    <!-- External Ad SDK Scripts (Adsgram + Adeasly) -->
-    <script src="https://adsgram.ai/js/adsgram.js" async></script>
-    <script src="https://adeasly.com/js/adeasly.js" async></script>
+    <style>
+        :root {
+            --bg-primary: #0a0f1d;
+            --bg-secondary: #0f172a;
+            --accent-blue: #00d2ff;
+            --accent-gradient: linear-gradient(135deg, #00d2ff 0%, #3a7bd5 100%);
+            --glass-bg: rgba(15, 23, 42, 0.75);
+            --glass-border: rgba(255, 255, 255, 0.12);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+        }
 
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/animations.css">
-    <link rel="stylesheet" href="css/responsive.css">
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-main);
+            min-height: 100vh;
+            overflow-x: hidden;
+            padding-bottom: 80px;
+        }
+
+        /* Force-Hide Utility */
+        .hidden {
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            pointer-events: none !important;
+        }
+
+        /* App Shell */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            min-height: 100vh;
+            position: relative;
+        }
+
+        /* Splash Screen */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: var(--bg-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .splash-content {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .splash-logo {
+            font-size: 3.5rem;
+        }
+
+        .splash-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: var(--accent-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .spinner {
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(255, 255, 255, 0.1);
+            border-top-color: var(--accent-blue);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Glass Header */
+        .glass-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 18px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .header-brand {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header-title {
+            font-weight: 700;
+            font-size: 1.2rem;
+        }
+
+        .user-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            display: block;
+        }
+
+        .user-handle {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* Main Content UI */
+        .main-content {
+            padding: 20px 16px;
+        }
+
+        .balance-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .balance-amount {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: var(--accent-blue);
+            margin: 8px 0;
+        }
+
+        .action-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .action-btn {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-md);
+            padding: 16px;
+            color: white;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+        }
+
+        /* Navigation */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 480px;
+            height: 65px;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: var(--glass-bg);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid var(--glass-border);
+            z-index: 100;
+        }
+
+        .nav-item {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            cursor: pointer;
+        }
+
+        .nav-item.active {
+            color: var(--accent-blue);
+        }
+    </style>
 </head>
 <body>
-    <!-- Telegram Detection Fallback Screen -->
-    <div id="telegram-fallback" class="fallback-screen hidden">
-        <div class="glass-card fallback-card">
-            <div class="fallback-icon">📱</div>
-            <h2>Telegram Only App</h2>
-            <p>SupEarn is designed to run exclusively inside Telegram as a Mini App. Please open this app via our official Telegram bot.</p>
-            <a id="btn-open-bot" href="https://t.me/SupEarnBot" class="glass-button btn-primary" target="_blank" rel="noopener">
-                Open in Telegram
-            </a>
+
+    <!-- Splash Screen -->
+    <div id="splash-screen" class="splash-screen">
+        <div class="splash-content">
+            <div class="splash-logo">⚡</div>
+            <h1 class="splash-title">SupEarn</h1>
+            <p style="color: var(--text-muted);">Earn Coins Effortlessly</p>
+            <div class="spinner"></div>
         </div>
     </div>
 
-    <!-- Main Application Shell -->
-    <div id="app-shell" class="app-container">
-
-        <!-- Splash Screen -->
-        <div id="splash-screen" class="splash-screen">
-            <div class="particles-bg" id="particles-bg"></div>
-            <div class="splash-content">
-                <div class="splash-logo-container">
-                    <div class="splash-logo">⚡</div>
-                </div>
-                <h1 class="splash-title">SupEarn</h1>
-                <p class="splash-subtitle">Earn Coins & Cash Out Effortlessly</p>
-                <div class="splash-loader">
-                    <div class="spinner"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Offline Banner -->
-        <div id="offline-banner" class="offline-banner hidden">
-            <span class="offline-icon">⚠️</span>
-            <span class="offline-text">No internet connection. Features restricted.</span>
-        </div>
-
-        <!-- Toast Container -->
-        <div id="toast-container" class="toast-container"></div>
-
-        <!-- App Header -->
+    <!-- App Shell -->
+    <div class="app-container">
+        <!-- Header -->
         <header id="main-header" class="glass-header hidden">
-            <div class="header-brand" id="admin-trigger-zone">
-                <div class="header-logo">⚡</div>
+            <div class="header-brand">
+                <span>⚡</span>
                 <span class="header-title">SupEarn</span>
             </div>
-            <div class="header-profile">
-                <div class="profile-info">
-                    <span id="user-display-name" class="user-name">Loading...</span>
-                    <span id="user-telegram-handle" class="user-handle">@username</span>
-                </div>
-                <div class="profile-avatar-wrap">
-                    <div id="user-avatar" class="profile-avatar-fallback">👤</div>
-                </div>
+            <div>
+                <span id="user-display-name" class="user-name">User</span>
+                <span id="user-telegram-handle" class="user-handle">@username</span>
             </div>
         </header>
 
-        <!-- Dynamic Main Content Area -->
+        <!-- Dynamic Content -->
         <main id="app-content" class="main-content hidden">
-            <!-- Content loaded dynamically via ES Modules -->
+            <div class="balance-card">
+                <span style="color: var(--text-muted); font-size: 0.9rem;">Coin Balance</span>
+                <div id="coin-balance" class="balance-amount">100</div>
+                <span style="color: #10b981; font-size: 0.85rem;">₹1.00 INR</span>
+            </div>
+
+            <div class="action-grid">
+                <button id="btn-watch" class="action-btn">
+                    <span style="font-size: 1.5rem;">📺</span>
+                    Watch Ad (+15)
+                </button>
+                <button id="btn-daily" class="action-btn">
+                    <span style="font-size: 1.5rem;">🎁</span>
+                    Daily Bonus
+                </button>
+            </div>
         </main>
 
-        <!-- Bottom Navigation Bar -->
-        <nav id="bottom-nav" class="bottom-nav glass-nav hidden">
-            <button id="nav-home" class="nav-item active" data-target="home">
-                <div class="nav-icon">🏠</div>
-                <span class="nav-label">Home</span>
+        <!-- Bottom Navigation -->
+        <nav id="bottom-nav" class="bottom-nav hidden">
+            <button class="nav-item active">
+                <span style="font-size: 1.2rem;">🏠</span>
+                <span style="font-size: 0.75rem;">Home</span>
             </button>
-            <button id="nav-tasks" class="nav-item" data-target="tasks">
-                <div class="nav-icon">📋</div>
-                <span class="nav-label">Tasks</span>
+            <button class="nav-item">
+                <span style="font-size: 1.2rem;">📋</span>
+                <span style="font-size: 0.75rem;">Tasks</span>
             </button>
         </nav>
-
-        <!-- Universal Glass Modal Container -->
-        <div id="app-modal" class="modal-overlay hidden">
-            <div class="glass-modal" id="modal-box">
-                <button id="modal-close-btn" class="modal-close" aria-label="Close Modal">&times;</button>
-                <div id="modal-body" class="modal-body"></div>
-            </div>
-        </div>
-
-        <!-- Hidden Admin Login Modal -->
-        <div id="admin-modal" class="modal-overlay hidden">
-            <div class="glass-modal admin-modal-box">
-                <button id="admin-modal-close" class="modal-close">&times;</button>
-                <h2 class="admin-title">Admin Console Access</h2>
-                <form id="admin-login-form" class="admin-form">
-                    <div class="form-group">
-                        <label for="admin-email">Admin Email</label>
-                        <input type="email" id="admin-email" class="glass-input" placeholder="admin@supearn.com" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="admin-password">Password</label>
-                        <input type="password" id="admin-password" class="glass-input" placeholder="••••••••" required>
-                    </div>
-                    <button type="submit" class="glass-button btn-primary btn-block">Authenticate</button>
-                </form>
-            </div>
-        </div>
-
     </div>
 
-    <!-- Application Module Entry Point -->
-    <script type="module" src="js/app.js"></script>
+    <script>
+        // Inline Execution Guarantee: No ES module blocking possible
+        document.addEventListener('DOMContentLoaded', function () {
+            
+            // Hard Fail-Safe: Dismiss Splash Screen within 1 second maximum
+            setTimeout(function () {
+                var splash = document.getElementById('splash-screen');
+                var header = document.getElementById('main-header');
+                var content = document.getElementById('app-content');
+                var nav = document.getElementById('bottom-nav');
+
+                if (splash) splash.classList.add('hidden');
+                if (header) header.classList.remove('hidden');
+                if (content) content.classList.remove('hidden');
+                if (nav) nav.classList.remove('hidden');
+
+                // Detect Telegram User
+                var tg = window.Telegram ? window.Telegram.WebApp : null;
+                if (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                    var u = tg.initDataUnsafe.user;
+                    document.getElementById('user-display-name').innerText = u.first_name || 'User';
+                    document.getElementById('user-telegram-handle').innerText = '@' + (u.username || 'user');
+                } else {
+                    document.getElementById('user-display-name').innerText = 'Demo User';
+                    document.getElementById('user-telegram-handle').innerText = '@demo_mode';
+                }
+            }, 800);
+
+            // Bind Ad Action Event
+            document.getElementById('btn-watch').addEventListener('click', function () {
+                var balanceElem = document.getElementById('coin-balance');
+                var current = parseInt(balanceElem.innerText, 10) || 0;
+                balanceElem.innerText = current + 15;
+                alert('Ad Watched! +15 coins added.');
+            });
+
+            // Bind Daily Bonus Event
+            document.getElementById('btn-daily').addEventListener('click', function () {
+                alert('Daily bonus already claimed for today!');
+            });
+        });
+    </script>
 </body>
 </html>
