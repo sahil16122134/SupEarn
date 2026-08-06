@@ -1,5 +1,4 @@
-import { auth, db, doc, getDoc, setDoc, serverTimestamp } from './firebase.js';
-import { signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { auth, db, signInAnonymously, doc, getDoc, setDoc, serverTimestamp } from './firebase.js';
 
 export async function authenticateUser(tgUser) {
     const defaultUser = {
@@ -12,9 +11,9 @@ export async function authenticateUser(tgUser) {
         dailyStreak: 1
     };
 
-    // If Firebase isn't initialized or credentials are demo placeholders, use local mock user
-    if (!auth || !db || auth.app.options.apiKey === "YOUR_API_KEY") {
-        console.warn("Using Local Storage user fallback.");
+    // Safe local fallback if API keys are unconfigured
+    if (!auth || !db || auth?.app?.options?.apiKey === "YOUR_API_KEY") {
+        console.warn("Using local storage user fallback.");
         const stored = localStorage.getItem('supearn_mock_user');
         if (stored) return JSON.parse(stored);
         
@@ -34,7 +33,7 @@ export async function authenticateUser(tgUser) {
 
         return userSnap.data();
     } catch (err) {
-        console.warn("Firebase Auth Error, falling back to local mode:", err);
+        console.warn("Firebase Auth error, falling back to local mode:", err);
         return defaultUser;
     }
 }
