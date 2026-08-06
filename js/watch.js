@@ -1,15 +1,15 @@
-// Adsgram Integration Module
+// Adeasly Integration Module
 import { state, updateUserCoins } from './settings.js';
 import { db, doc, updateDoc, increment } from './firebase.js';
 import { showToast } from './ui.js';
 
-export function initAdsgram() {
-    const AdController = window.Adsgram?.init({ blockId: "YOUR_ADSGRAM_BLOCK_ID" });
+export function initAdeasly() {
+    const AdController = window.Adeasly?.init({ blockId: "YOUR_ADEASLY_BLOCK_ID" });
 
     return {
         showAd: async () => {
             if (!AdController) {
-                showToast("Ad Provider not ready.", 'warning');
+                showToast("Adeasly Ad Provider not ready.", 'warning');
                 return;
             }
 
