@@ -10,89 +10,66 @@ import { openRedeemModal } from './redeem.js';
 import { openReferralModal } from './referral.js';
 import { setupAdminTriggers } from './admin.js';
 
-// Helper to forcibly hide elements regardless of CSS rules
-function forceHide(elementId) {
-    const el = document.getElementById(elementId);
-    if (el) {
-        el.classList.add('hidden');
-        el.style.display = 'none';
-    }
-}
-
-// Helper to forcibly show elements
-function forceShow(elementId, displayType = 'block') {
-    const el = document.getElementById(elementId);
-    if (el) {
-        el.classList.remove('hidden');
-        el.style.display = displayType;
-    }
-}
-
 document.addEventListener('DOMContentLoaded', async () => {
-    // FAIL-SAFE: Guarantee splash screen disappears after 3 seconds no matter what crashes
-    const safetyTimeout = setTimeout(() => {
-        console.warn("Safety trigger: Force-closing splash screen due to slow init.");
-        forceHide('splash-screen');
-        forceShow('app-content');
-        forceShow('main-header');
-        forceShow('bottom-nav', 'flex');
-    }, 3000);
+    const splash = document.getElementById('splash-screen');
+    const header = document.getElementById('main-header');
+    const content = document.getElementById('app-content');
+    const nav = document.getElementById('bottom-nav');
 
     try {
+        // 1. Initialize Telegram
         const { user: tgUser } = initTelegramApp();
+
+        // 2. Authenticate
         state.user = await authenticateUser(tgUser);
-        
-        // Cancel safety timeout once auth completes
-        clearTimeout(safetyTimeout);
 
-        // Hide splash screen & reveal UI elements explicitly
-        forceHide('splash-screen');
-        forceShow('main-header');
-        forceShow('app-content');
-        forceShow('bottom-nav', 'flex');
-
-        // Render User Info
+        // 3. Render Header Details safely
         const nameElem = document.getElementById('user-display-name');
         const handleElem = document.getElementById('user-telegram-handle');
-        if (nameElem) nameElem.innerText = state.user.firstName;
-        if (handleElem) handleElem.innerText = `@${state.user.username}`;
+        if (nameElem && state.user?.firstName) nameElem.innerText = state.user.firstName;
+        if (handleElem && state.user?.username) handleElem.innerText = `@${state.user.username}`;
 
-        // Render Initial Screen
-        const appContent = document.getElementById('app-content');
-        if (appContent) {
-            renderHomeView(appContent);
+        // 4. Render Home View
+        if (content) {
+            renderHomeView(content);
         }
 
-        // Navigation Tab Listeners
-        const navHome = document.getElementById('nav-home');
-        const navTasks = document.getElementById('nav-tasks');
-
-        navHome?.addEventListener('click', () => {
-            triggerHaptic('light');
-            navHome.classList.add('active');
-            navTasks?.classList.remove('active');
-            if (appContent) renderHomeView(appContent);
-            bindHomeEvents();
-        });
-
-        navTasks?.addEventListener('click', () => {
-            triggerHaptic('light');
-            navTasks.classList.add('active');
-            navHome?.classList.remove('active');
-            if (appContent) renderTasksView(appContent);
-        });
-
+        // 5. Setup Navigation
+        setupNavigation(content);
         bindHomeEvents();
         setupAdminTriggers();
 
     } catch (err) {
-        console.error("Initialization Failed:", err);
-        clearTimeout(safetyTimeout);
-        forceHide('splash-screen');
-        forceShow('app-content');
-        showToast("Loaded in preview mode.", 'warning');
+        console.error("FATAL BOOT ERROR:", err);
+        showToast("App started in preview mode.", "warning");
+    } finally {
+        // ALWAYS EXECUTE: Guarantee splash removal regardless of errors above
+        if (splash) splash.style.display = 'none';
+        if (header) header.style.display = 'flex';
+        if (content) content.style.display = 'block';
+        if (nav) nav.style.display = 'flex';
     }
 });
+
+function setupNavigation(content) {
+    const navHome = document.getElementById('nav-home');
+    const navTasks = document.getElementById('nav-tasks');
+
+    navHome?.addEventListener('click', () => {
+        triggerHaptic('light');
+        navHome.classList.add('active');
+        navTasks?.classList.remove('active');
+        if (content) renderHomeView(content);
+        bindHomeEvents();
+    });
+
+    navTasks?.addEventListener('click', () => {
+        triggerHaptic('light');
+        navTasks.classList.add('active');
+        navHome?.classList.remove('active');
+        if (content) renderTasksView(content);
+    });
+}
 
 function bindHomeEvents() {
     const adsgram = initAdsgram();
