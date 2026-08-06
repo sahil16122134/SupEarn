@@ -10,30 +10,60 @@ import { openRedeemModal } from './redeem.js';
 import { openReferralModal } from './referral.js';
 import { setupAdminTriggers } from './admin.js';
 
+// Helper to forcibly hide elements regardless of CSS rules
+function forceHide(elementId) {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.classList.add('hidden');
+        el.style.display = 'none';
+    }
+}
+
+// Helper to forcibly show elements
+function forceShow(elementId, displayType = 'block') {
+    const el = document.getElementById(elementId);
+    if (el) {
+        el.classList.remove('hidden');
+        el.style.display = displayType;
+    }
+}
+
 document.addEventListener('DOMContentLoaded', async () => {
-    const splash = document.getElementById('splash-screen');
-    const { isTelegram, user: tgUser } = initTelegramApp();
+    // FAIL-SAFE: Guarantee splash screen disappears after 3 seconds no matter what crashes
+    const safetyTimeout = setTimeout(() => {
+        console.warn("Safety trigger: Force-closing splash screen due to slow init.");
+        forceHide('splash-screen');
+        forceShow('app-content');
+        forceShow('main-header');
+        forceShow('bottom-nav', 'flex');
+    }, 3000);
 
     try {
+        const { user: tgUser } = initTelegramApp();
         state.user = await authenticateUser(tgUser);
         
-        // Unhide core UI elements safely
-        splash?.classList.add('hidden');
-        document.getElementById('main-header')?.classList.remove('hidden');
-        document.getElementById('app-content')?.classList.remove('hidden');
-        document.getElementById('bottom-nav')?.classList.remove('hidden');
+        // Cancel safety timeout once auth completes
+        clearTimeout(safetyTimeout);
 
-        // Render User Header Details
+        // Hide splash screen & reveal UI elements explicitly
+        forceHide('splash-screen');
+        forceShow('main-header');
+        forceShow('app-content');
+        forceShow('bottom-nav', 'flex');
+
+        // Render User Info
         const nameElem = document.getElementById('user-display-name');
         const handleElem = document.getElementById('user-telegram-handle');
         if (nameElem) nameElem.innerText = state.user.firstName;
         if (handleElem) handleElem.innerText = `@${state.user.username}`;
 
-        // Render Home Screen
+        // Render Initial Screen
         const appContent = document.getElementById('app-content');
-        renderHomeView(appContent);
+        if (appContent) {
+            renderHomeView(appContent);
+        }
 
-        // Bind Nav Tabs
+        // Navigation Tab Listeners
         const navHome = document.getElementById('nav-home');
         const navTasks = document.getElementById('nav-tasks');
 
@@ -41,7 +71,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             triggerHaptic('light');
             navHome.classList.add('active');
             navTasks?.classList.remove('active');
-            renderHomeView(appContent);
+            if (appContent) renderHomeView(appContent);
             bindHomeEvents();
         });
 
@@ -49,7 +79,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             triggerHaptic('light');
             navTasks.classList.add('active');
             navHome?.classList.remove('active');
-            renderTasksView(appContent);
+            if (appContent) renderTasksView(appContent);
         });
 
         bindHomeEvents();
@@ -57,9 +87,10 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     } catch (err) {
         console.error("Initialization Failed:", err);
-        if (splash) splash.classList.add('hidden');
-        document.getElementById('app-content')?.classList.remove('hidden');
-        showToast("Started in offline preview mode.", 'warning');
+        clearTimeout(safetyTimeout);
+        forceHide('splash-screen');
+        forceShow('app-content');
+        showToast("Loaded in preview mode.", 'warning');
     }
 });
 
