@@ -1,3 +1,18 @@
+/* Core Utility Class Fix */
+.hidden {
+    display: none !important;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    pointer-events: none !important;
+}
+
+/* Ensure Bottom Navigation is styled properly when visible */
+.bottom-nav {
+    display: flex;
+}
+.bottom-nav.hidden {
+    display: none !important;
+}
 /* SupEarn - Core Variables & Base Styles */
 :root {
     --bg-primary: #0a0f1d;
