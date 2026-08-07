@@ -12,6 +12,10 @@ import {
   resolveRedeemRequestTx,
   updateSettings,
   getSettingsOnce,
+  getTasksOnce,
+  createTask,
+  updateTask,
+  deleteTask
 } from "../core/firestore.js";
 import { navigateTo } from "../core/router.js";
 import { openModal, confirmModal } from "../components/modal.js";
@@ -97,10 +101,19 @@ export async function render(container) {
         <h3>Admin Panel</h3>
         <button type="button" class="btn-glass btn-sm btn-ghost" id="admin-signout-btn">Sign Out</button>
       </div>
-      <div class="admin-tabs">
-        <button type="button" class="admin-tab-btn active" data-admin-tab="requests">Requests</button>
-        <button type="button" class="admin-tab-btn" data-admin-tab="settings">Settings</button>
-      </div>
+     <div class="admin-tabs">
+    <button type="button" class="admin-tab-btn active" data-admin-tab="requests">
+        Requests
+    </button>
+
+    <button type="button" class="admin-tab-btn" data-admin-tab="tasks">
+        Tasks
+    </button>
+
+    <button type="button" class="admin-tab-btn" data-admin-tab="settings">
+        Settings
+    </button>
+</div>
       <div id="admin-tab-content"></div>
     </div>
   `;
@@ -135,10 +148,14 @@ export async function render(container) {
       unsubRequests = null;
     }
     if (currentTab === "requests") {
-      renderRequestsTab();
-    } else {
-      renderSettingsTab();
-    }
+    renderRequestsTab();
+
+} else if (currentTab === "tasks") {
+    renderTasksTab();
+
+} else {
+    renderSettingsTab();
+}
   }
 
   function renderRequestsTab() {
@@ -225,7 +242,255 @@ export async function render(container) {
       toastError("Couldn't process this request. Please try again.");
     }
   }
+async function renderTasksTab() {
 
+  tabContent.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h4>Manage Tasks</h4>
+
+      <button class="btn-glass btn-primary" id="addTaskBtn">
+        + Add Task
+      </button>
+    </div>
+
+    <div id="taskList">
+      ${cardListSkeleton(3)}
+    </div>
+  `;
+
+  const list = tabContent.querySelector("#taskList");
+
+  const tasks = await getTasksOnce();
+
+  if (!tasks.length) {
+    showEmptyState(list, {
+      title: "No Tasks",
+      message: "No custom tasks have been added yet."
+    });
+    return;
+  }
+
+  list.innerHTML = tasks.map(task => `
+      <div class="glass-card" style="margin-bottom:12px;padding:16px;">
+
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div>
+
+            <h4>${escapeHtml(task.name)}</h4>
+
+            <div>
+              ${task.reward} Coins
+            </div>
+
+          </div>
+
+          <div>
+
+            <button
+              class="btn-glass btn-sm"
+              data-edit="${task.id}">
+              Edit
+            </button>
+
+            <button
+              class="btn-glass btn-danger btn-sm"
+              data-delete="${task.id}">
+              Delete
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+  `).join("");
+
+  tabContent.querySelector("#addTaskBtn")
+      .onclick = () => openTaskModal();
+
+  tasks.forEach(task=>{
+
+      list.querySelector(`[data-edit="${task.id}"]`)
+          .onclick=()=>openTaskModal(task);
+
+      list.querySelector(`[data-delete="${task.id}"]`)
+          .onclick=()=>deleteTaskHandler(task);
+
+  });
+
+}
+   async function deleteTaskHandler(task){
+
+    const ok = await confirmModal({
+        title:"Delete Task",
+        message:`Delete "${task.name}" ?`,
+        confirmLabel:"Delete",
+        danger:true
+    });
+
+    if(!ok) return;
+
+    await deleteTask(task.id);
+
+    toastSuccess("Task deleted");
+
+    renderTasksTab();
+
+}
+   async function openTaskModal(task = null) {
+
+  const isEdit = !!task;
+
+  openModal({
+
+    title: isEdit ? "Edit Task" : "Add Task",
+
+    bodyHtml: `
+
+      <div class="field">
+        <label>Task Name</label>
+        <input id="taskName"
+               value="${task?.name || ""}">
+      </div>
+
+      <div class="field">
+        <label>Reward</label>
+        <input id="taskReward"
+               type="number"
+               value="${task?.reward || ""}">
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea id="taskDescription">${
+          task?.description || ""
+        }</textarea>
+      </div>
+
+      <div class="field">
+        <label>Task URL</label>
+        <input id="taskUrl"
+               value="${task?.taskUrl || ""}">
+      </div>
+
+      <div class="field">
+        <label>Icon URL</label>
+        <input id="taskIcon"
+               value="${task?.icon || ""}">
+      </div>
+
+      <div class="field">
+        <label>Referral Code</label>
+        <input id="taskReferral"
+               value="${task?.referralCode || ""}">
+      </div>
+
+      <div class="field">
+        <label>Notes</label>
+        <textarea id="taskNotes">${
+          task?.notes || ""
+        }</textarea>
+      </div>
+
+      <div class="field">
+        <label>Steps (one per line)</label>
+        <textarea id="taskSteps">${
+          (task?.steps || []).join("\n")
+        }</textarea>
+      </div>
+
+      <button
+          id="saveTaskBtn"
+          class="btn-glass btn-primary"
+          style="width:100%;margin-top:18px;">
+
+          ${isEdit ? "Update Task" : "Create Task"}
+
+      </button>
+
+    `,
+
+    onMount(card){
+
+      card.querySelector("#saveTaskBtn").onclick=()=>{
+
+        saveTask(task);
+
+      };
+
+    }
+
+  });
+
+}
+   async function saveTask(existingTask = null) {
+
+    const name = document.getElementById("taskName").value.trim();
+    const reward = Number(document.getElementById("taskReward").value);
+    const description = document.getElementById("taskDescription").value.trim();
+    const taskUrl = document.getElementById("taskUrl").value.trim();
+    const icon = document.getElementById("taskIcon").value.trim();
+    const referralCode = document.getElementById("taskReferral").value.trim();
+    const notes = document.getElementById("taskNotes").value.trim();
+
+    const steps = document
+        .getElementById("taskSteps")
+        .value
+        .split("\n")
+        .map(s => s.trim())
+        .filter(Boolean);
+
+    if (!name) {
+        toastError("Enter task name");
+        return;
+    }
+
+    if (!reward || reward <= 0) {
+        toastError("Enter valid reward");
+        return;
+    }
+
+    const data = {
+        name,
+        reward,
+        description,
+        taskUrl,
+        icon,
+        referralCode,
+        notes,
+        steps,
+        active: true
+    };
+
+    try {
+
+        if (existingTask) {
+
+            await updateTask(existingTask.id, data);
+
+            toastSuccess("Task updated");
+
+        } else {
+
+            await createTask(data);
+
+            toastSuccess("Task created");
+
+        }
+
+        document.querySelector(".modal-overlay")?.remove();
+
+        renderTasksTab();
+
+    } catch (e) {
+
+        console.error(e);
+
+        toastError("Couldn't save task.");
+
+    }
+
+}
   async function renderSettingsTab() {
     tabContent.innerHTML = cardListSkeleton(2, "200px");
     const settings = await getSettingsOnce();
