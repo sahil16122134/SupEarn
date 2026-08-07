@@ -519,7 +519,7 @@ async function renderTasksTab() {
 
     list.innerHTML=tasks.map(task=>`
 
-<div class="glass-card admin-task-card">
+<div class="glass-card" style="margin-bottom:12px;">
 
 <div style="display:flex;justify-content:space-between;align-items:center;">
 
@@ -527,52 +527,42 @@ async function renderTasksTab() {
 
 <h4>${escapeHtml(task.name)}</h4>
 
-<div style="margin-top:6px;color:var(--text-secondary);">
-
+<div style="font-size:13px;color:#999;">
 ${task.reward} Coins
-
 </div>
 
 <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
 
-<span class="badge ${task.active ? "badge-success":"badge-warning"}">
-
+<span class="badge ${task.active ? "badge-success":"badge-danger"}">
 ${task.active ? "Active":"Inactive"}
-
 </span>
 
-<span class="badge ${task.hidden ? "badge-danger":"badge-success"}">
-
+<span class="badge ${task.hidden ? "badge-warning":"badge-success"}">
 ${task.hidden ? "Hidden":"Visible"}
-
 </span>
 
 </div>
 
 </div>
 
-<div style="display:flex;flex-direction:column;gap:8px;">
+<div style="display:flex;gap:6px;flex-wrap:wrap;">
+
+<button
+class="btn-glass btn-sm"
+data-toggle-active="${task.id}">
+${task.active ? "Disable":"Enable"}
+</button>
+
+<button
+class="btn-glass btn-sm"
+data-toggle-hidden="${task.id}">
+${task.hidden ? "Show":"Hide"}
+</button>
 
 <button
 class="btn-glass btn-sm"
 data-edit="${task.id}">
 Edit
-</button>
-
-<button
-class="btn-glass btn-sm"
-data-active="${task.id}">
-
-${task.active ? "Deactivate":"Activate"}
-
-</button>
-
-<button
-class="btn-glass btn-sm"
-data-hide="${task.id}">
-
-${task.hidden ? "Show":"Hide"}
-
 </button>
 
 <button
@@ -590,20 +580,31 @@ Delete
 `).join("");
 
     tabContent.querySelector("#addTaskBtn").onclick=()=>openTaskModal();
+tasks.forEach(task => {
 
-    tasks.forEach(task=>{
+  list.querySelector(`[data-edit="${task.id}"]`)
+      .onclick = () => openTaskModal(task);
 
-        list.querySelector(`[data-edit="${task.id}"]`).onclick=()=>{
+  list.querySelector(`[data-delete="${task.id}"]`)
+      .onclick = () => deleteTaskHandler(task);
 
-            openTaskModal(task);
+  list.querySelector(`[data-active="${task.id}"]`)
+      .onclick = async () => {
+          await updateTask(task.id, {
+              active: !task.active
+          });
+          renderTasksTab();
+      };
 
-        };
+  list.querySelector(`[data-hide="${task.id}"]`)
+      .onclick = async () => {
+          await updateTask(task.id, {
+              hidden: !task.hidden
+          });
+          renderTasksTab();
+      };
 
-        list.querySelector(`[data-delete="${task.id}"]`).onclick=()=>{
-
-            deleteTaskHandler(task);
-
-        };
+});
 
         list.querySelector(`[data-active="${task.id}"]`).onclick=async()=>{
 
@@ -769,21 +770,21 @@ async function saveTask(existingTask = null) {
     }
 
     const data = {
+    name,
+    reward,
+    description,
+    taskUrl,
+    icon,
+    referralCode,
+    notes,
+    steps,
 
-        name,
-        reward,
-        description,
-        taskUrl,
-        icon,
-        referralCode,
-        notes,
-        steps,
+    active: existingTask?.active ?? true,
+    hidden: existingTask?.hidden ?? false,
 
-        active,
-
-        updatedAt: Date.now()
-
-    };
+    createdAt: existingTask?.createdAt || Date.now(),
+    updatedAt: Date.now()
+};
 
     try {
 
