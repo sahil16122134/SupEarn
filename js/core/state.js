@@ -59,7 +59,15 @@ export const appState = new Store({
   currentPage: "home",
   firebaseUid: null, // Firebase Anonymous Auth UID — the key for users/{firebaseUid}; set once by bootstrapTelegramAuth() at startup
 });
-
+export function getFirebaseUid() {
+    return appState.get("firebaseUid");
+}
+export function getCurrentUser() {
+    return appState.get("appUser");
+}
+export function getTelegramUser() {
+    return appState.get("telegramUser");
+}
 /* ============================================================ */
 /* DERIVED HELPERS                                                */
 /* ============================================================ */
