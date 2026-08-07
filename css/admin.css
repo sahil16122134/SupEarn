@@ -1,0 +1,150 @@
+/* ==========================================================================
+   SupEarn — pages/admin.css
+   Admin login popup + admin panel (redeem requests, settings).
+   ========================================================================== */
+
+/* ---- Admin login popup ---- */
+.admin-login-card {
+  max-width: 340px;
+  width: 100%;
+}
+
+.admin-login-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--info-dim);
+  color: var(--info);
+  margin: 0 auto var(--space-md);
+}
+
+.admin-login-card h3 {
+  text-align: center;
+  margin-bottom: var(--space-md);
+}
+
+/* ---- Admin panel shell ---- */
+.admin-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.admin-tabs {
+  display: flex;
+  gap: var(--space-xs);
+  background: var(--glass-surface);
+  border-radius: var(--radius-md);
+  padding: 4px;
+  border: 1px solid var(--glass-border);
+}
+
+.admin-tab-btn {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-sm);
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.admin-tab-btn.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: var(--text-on-accent);
+}
+
+/* ---- Redeem request card ---- */
+.admin-request-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.admin-request-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.admin-request-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--glass-border-strong);
+}
+
+.admin-request-user {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-request-username {
+  font-weight: 600;
+  font-size: var(--fs-sm);
+}
+
+.admin-request-id {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.admin-request-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: var(--radius-sm);
+  padding: var(--space-sm);
+  font-size: var(--fs-sm);
+}
+
+.admin-request-detail-row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-sm);
+}
+
+.admin-request-detail-row span:first-child {
+  color: var(--text-muted);
+}
+
+.admin-request-detail-row span:last-child {
+  font-family: var(--font-mono);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.admin-request-actions {
+  display: flex;
+  gap: var(--space-sm);
+}
+
+.admin-request-actions .btn-glass {
+  flex: 1;
+}
+
+/* ---- Settings form ---- */
+.admin-settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.admin-settings-group h4 {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.admin-settings-save-bar {
+  position: sticky;
+  bottom: calc(var(--space-md));
+  z-index: 10;
+}

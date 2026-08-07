@@ -1,0 +1,379 @@
+/* ==========================================================================
+   SupEarn — layout.css
+   Structural layout: splash, outside-telegram screen, app shell (header,
+   page outlet, bottom nav), offline banner, modal/toast outlets, responsive.
+   ========================================================================== */
+
+/* ============================================================ */
+/* SPLASH SCREEN                                                  */
+/* ============================================================ */
+.splash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(ellipse 120% 80% at 50% 0%, var(--bg-elevated) 0%, var(--bg-mid) 55%, var(--bg-deep) 100%);
+  overflow: hidden;
+  transition: opacity var(--dur-slow) var(--ease-out), visibility var(--dur-slow) var(--ease-out);
+}
+
+.splash-screen.is-leaving {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.splash-bg {
+  position: absolute;
+  inset: 0;
+}
+
+.splash-particle {
+  background: var(--accent-cyan);
+}
+.splash-particle.p1 { width: 220px; height: 220px; top: 8%; left: -10%; background: var(--accent-cyan); animation-duration: 9s; }
+.splash-particle.p2 { width: 180px; height: 180px; bottom: 10%; right: -8%; background: var(--accent-blue); animation-duration: 11s; --float-x: -25px; --float-y: 20px; }
+.splash-particle.p3 { width: 140px; height: 140px; top: 55%; left: 60%; background: var(--accent-cyan); animation-duration: 7.5s; --float-x: 15px; --float-y: -15px; }
+.splash-particle.p4 { width: 160px; height: 160px; top: 15%; right: 15%; background: var(--accent-blue); animation-duration: 10s; --float-x: -18px; --float-y: 25px; }
+
+.splash-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  text-align: center;
+  padding: var(--space-lg);
+  animation: fade-in var(--dur-slow) var(--ease-out) both;
+}
+
+.splash-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 96px;
+  height: 96px;
+  border-radius: var(--radius-xl);
+  background: var(--glass-surface);
+  backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glow-cyan);
+  margin-bottom: var(--space-sm);
+}
+
+.splash-title {
+  font-size: var(--fs-hero);
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.splash-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  min-height: 18px;
+}
+
+.splash-loader {
+  display: flex;
+  gap: 6px;
+  margin-top: var(--space-md);
+}
+
+.splash-loader span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  animation: loader-bounce 1.2s ease-in-out infinite;
+}
+.splash-loader span:nth-child(2) { animation-delay: 0.15s; background: var(--accent-blue); }
+.splash-loader span:nth-child(3) { animation-delay: 0.3s; }
+
+/* ============================================================ */
+/* OUTSIDE TELEGRAM SCREEN                                        */
+/* ============================================================ */
+.outside-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 9000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  background: radial-gradient(ellipse 120% 80% at 50% 0%, var(--bg-elevated) 0%, var(--bg-mid) 55%, var(--bg-deep) 100%);
+}
+
+.outside-glow {
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(248, 113, 113, 0.18), transparent 70%);
+  filter: blur(20px);
+}
+
+.outside-card {
+  position: relative;
+  z-index: 1;
+  max-width: 380px;
+  width: 100%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-xxl) var(--space-xl);
+}
+
+.outside-icon {
+  width: 88px;
+  height: 88px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--error-dim);
+}
+
+.outside-card p {
+  font-size: var(--fs-sm);
+}
+
+.outside-card .btn-glass {
+  margin-top: var(--space-sm);
+}
+
+/* ============================================================ */
+/* APP SHELL                                                      */
+/* ============================================================ */
+.app {
+  position: relative;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  max-width: var(--content-max-width);
+  margin: 0 auto;
+}
+
+/* ---- Header ---- */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: var(--header-height);
+  padding: 0 var(--space-md);
+  border-left: none;
+  border-right: none;
+  border-top: none;
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.header-app-name {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--fs-lg);
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.header-username {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--glass-border-strong);
+}
+
+/* ---- Offline banner ---- */
+.offline-banner {
+  position: sticky;
+  top: var(--header-height);
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  padding: var(--space-xs) var(--space-md);
+  background: var(--error-dim);
+  color: var(--error);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  animation: slide-up-in var(--dur-base) var(--ease-out) both;
+}
+
+/* ---- Page outlet ---- */
+.page-outlet {
+  flex: 1;
+  padding: var(--space-md) var(--space-md) calc(var(--nav-height) + var(--space-xl));
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.page-section-title {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin: var(--space-xs) 2px;
+}
+
+/* ---- Bottom nav ---- */
+.bottom-nav {
+  position: fixed;
+  left: 50%;
+  bottom: 0;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: var(--content-max-width);
+  height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+  padding-bottom: env(safe-area-inset-bottom);
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  z-index: 500;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  border-top-left-radius: var(--radius-lg);
+  border-top-right-radius: var(--radius-lg);
+}
+
+.nav-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--space-xs) var(--space-xl);
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  transition: color var(--dur-fast) var(--ease-out), transform var(--dur-fast) var(--ease-out);
+}
+
+.nav-btn svg {
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.nav-btn.active {
+  color: var(--accent-cyan);
+}
+
+.nav-btn.active svg {
+  transform: translateY(-2px);
+  filter: drop-shadow(0 0 6px rgba(34, 211, 238, 0.6));
+}
+
+.nav-btn:active {
+  transform: scale(0.92);
+}
+
+/* ---- Modal / toast outlets ---- */
+.modal-outlet {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  pointer-events: none;
+}
+
+.modal-outlet:empty {
+  display: none;
+}
+
+.toast-outlet {
+  position: fixed;
+  top: calc(var(--header-height) + env(safe-area-inset-top) + 8px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  z-index: 9500;
+  pointer-events: none;
+}
+
+/* ============================================================ */
+/* RESPONSIVE                                                     */
+/* ============================================================ */
+
+/* Small phones */
+@media (max-width: 360px) {
+  :root {
+    --space-lg: 16px;
+    --fs-hero: 1.9rem;
+  }
+}
+
+/* Tablet */
+@media (min-width: 640px) {
+  :root {
+    --content-max-width: 640px;
+  }
+
+  .glass-card {
+    padding: var(--space-xl);
+  }
+}
+
+/* Desktop */
+@media (min-width: 1024px) {
+  :root {
+    --content-max-width: 480px;
+  }
+
+  body {
+    background: radial-gradient(ellipse 100% 60% at 50% -10%, var(--bg-elevated) 0%, var(--bg-mid) 55%, var(--bg-deep) 100%);
+  }
+
+  .app {
+    margin: 0 auto;
+    box-shadow: var(--shadow-lift);
+    min-height: 100dvh;
+  }
+
+  .bottom-nav {
+    border-radius: var(--radius-lg);
+    bottom: var(--space-md);
+  }
+}
