@@ -100,6 +100,7 @@ export async function getOrCreateUser(telegramUser, firebaseUid) {
       // Keep profile fields fresh in case the user changed their Telegram
       // username/photo/name since their last visit.
       const freshFields = {
+         firebaseUid,
         telegramId: telegramUser.telegramId,
         username: telegramUser.username,
         displayName: telegramUser.displayName,
@@ -139,7 +140,11 @@ export async function getOrCreateUser(telegramUser, firebaseUid) {
 }
 
 export function subscribeUser(firebaseUid, callback, onError) {
-  return onSnapshot(
+ if (!firebaseUid) {
+    callback(null);
+    return () => {};
+}
+   return onSnapshot(
     userRef(firebaseUid),
     (snap) => callback(snap.exists() ? { id: snap.id, ...snap.data() } : null),
     (err) => onError && onError(err)
@@ -147,7 +152,8 @@ export function subscribeUser(firebaseUid, callback, onError) {
 }
 
 export async function getUserOnce(firebaseUid) {
-  const snap = await getDoc(userRef(firebaseUid));
+ if (!firebaseUid) return null;
+   const snap = await getDoc(userRef(firebaseUid));
   return snap.exists() ? { id: snap.id, ...snap.data() } : null;
 }
 
@@ -157,6 +163,9 @@ export async function getUserOnce(firebaseUid) {
  */
 export async function creditCoins(firebaseUid, amount) {
   const ref = userRef(firebaseUid);
+   if (!firebaseUid) {
+    throw new Error("INVALID_FIREBASE_UID");
+}
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) throw new Error("USER_NOT_FOUND");
@@ -186,7 +195,10 @@ export async function setWatchAdCooldown(firebaseUid) {
  * is attempted before the configured cooldown has passed.
  */
 export async function creditWatchAdRewardTx(firebaseUid, rewardAmount, cooldownSeconds) {
-  const ref = userRef(firebaseUid);
+  if (!firebaseUid) {
+    throw new Error("INVALID_FIREBASE_UID");
+}
+   const ref = userRef(firebaseUid);
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) throw new Error("USER_NOT_FOUND");
@@ -218,7 +230,10 @@ export async function creditWatchAdRewardTx(firebaseUid, rewardAmount, cooldownS
  * double-tap or race condition can never grant two rewards.
  */
 export async function claimDailyLoginTx(firebaseUid, todayKey, yesterdayKey, rewardForDay) {
-  const ref = userRef(firebaseUid);
+  if (!firebaseUid) {
+    throw new Error("INVALID_FIREBASE_UID");
+}
+   const ref = userRef(firebaseUid);
   return runTransaction(db, async (tx) => {
     const snap = await tx.get(ref);
     if (!snap.exists()) throw new Error("USER_NOT_FOUND");
@@ -259,7 +274,10 @@ const redeemCol = collection(db, "redeemRequests");
  * resolve) and telegramId (so the admin panel can still display it).
  */
 export async function createRedeemRequestTx(firebaseUid, telegramId, requestPayload, amountCoins) {
-  const userDocRef = userRef(firebaseUid);
+  if (!firebaseUid) {
+    throw new Error("INVALID_FIREBASE_UID");
+}
+   const userDocRef = userRef(firebaseUid);
   const newRequestRef = doc(redeemCol);
 
   return runTransaction(db, async (tx) => {
@@ -313,7 +331,9 @@ export function subscribeAllPendingRedeemRequests(callback, onError) {
 export async function resolveRedeemRequestTx(requestId, firebaseUid, approve, refundAmount) {
   const requestRef = doc(db, "redeemRequests", requestId);
   const userDocRef = userRef(firebaseUid);
-
+if (!firebaseUid) {
+    throw new Error("INVALID_FIREBASE_UID");
+}
   return runTransaction(db, async (tx) => {
     const reqSnap = await tx.get(requestRef);
     if (!reqSnap.exists()) throw new Error("REQUEST_NOT_FOUND");
@@ -443,13 +463,13 @@ export async function creditTaskRewardOnceTx(firebaseUid, telegramId, taskId, am
     if (!userSnap.exists()) throw new Error("USER_NOT_FOUND");
 
     tx.set(completionRef, {
-      firebaseUid: String(firebaseUid),
-      telegramId: String(telegramId),
-      taskId,
-      provider,
-      amount,
-      rewardedAt: serverTimestamp(),
-    });
+  firebaseUid: String(firebaseUid),
+  telegramId: String(telegramId),
+  taskId,
+  provider,
+  reward: amount,
+  createdAt: serverTimestamp(),
+});
     tx.update(userDocRef, {
       coinBalance: increment(amount),
       totalEarnedCoins: increment(amount),
