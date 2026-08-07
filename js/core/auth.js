@@ -56,10 +56,28 @@ function waitForFirebaseUser() {
  * Returns { telegramUser, appUser, firebaseUid }.
  */
 export async function bootstrapTelegramAuth() {
-  const telegramUser = getTelegramUser();
-  if (!telegramUser) {
-    throw new AuthError("NO_TELEGRAM_USER", "Could not read your Telegram profile.");
-  }
+let telegramUser;
+
+if (isInsideTelegram()) {
+    telegramUser = getTelegramUser();
+
+    if (!telegramUser) {
+        throw new AuthError(
+            "NO_TELEGRAM_USER",
+            "Could not read your Telegram profile."
+        );
+    }
+} else {
+    telegramUser = {
+        telegramId: "web_" + crypto.randomUUID(),
+        username: "webuser",
+        displayName: "Web User",
+        firstName: "Web",
+        lastName: "",
+        profilePhoto: "",
+        languageCode: "en",
+    };
+}
 
 let firebaseUser;
 
