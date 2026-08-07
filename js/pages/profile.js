@@ -54,7 +54,9 @@ export async function render(container) {
   container.querySelectorAll("[data-nav-page]").forEach((el) => {
     el.addEventListener("click", () => {
       hapticSelection();
-      navigateTo(el.dataset.navPage);
+      navigateTo(el.dataset.navPage, {}, {
+    replace: true
+});
     });
   });
 
