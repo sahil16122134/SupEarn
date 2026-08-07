@@ -72,8 +72,11 @@ export async function navigateTo(pageName, params = {}, options = {}) {
   }
 
   appState.set("currentPage", pageName);
-  await renderCurrentEntry();
-  isTransitioning = false;
+try {
+    await renderCurrentEntry();
+} finally {
+    isTransitioning = false;
+}
 }
 
 /**
@@ -140,7 +143,9 @@ function renderPageErrorFallback() {
 function wirePageErrorRetry(container, name, params) {
   const btn = container.querySelector("[data-retry-page]");
   if (btn) {
-    btn.addEventListener("click", () => renderCurrentEntry());
+   btn.addEventListener("click", async () => {
+    await renderCurrentEntry();
+});
   }
 }
 
