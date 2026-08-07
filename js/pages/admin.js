@@ -91,73 +91,306 @@ export async function render(container) {
     `;
     return () => {};
   }
+let currentTab = "requests";
+let unsubRequests = null;
+let currentTab = "dashboard";
+let unsubRequests = null;
 
-  let currentTab = "requests";
-  let unsubRequests = null;
+container.innerHTML = `
+<div class="admin-page">
 
-  container.innerHTML = `
-    <div class="admin-page">
-      <div class="tasks-header-row">
-        <h3>Admin Panel</h3>
-        <button type="button" class="btn-glass btn-sm btn-ghost" id="admin-signout-btn">Sign Out</button>
-      </div>
-     <div class="admin-tabs">
-    <button type="button" class="admin-tab-btn active" data-admin-tab="requests">
-        Requests
-    </button>
+<div class="admin-topbar">
+    <div>
+        <h2>Admin Panel</h2>
+        <small>SupEarn Management</small>
+    </div>
 
-    <button type="button" class="admin-tab-btn" data-admin-tab="tasks">
-        Tasks
-    </button>
-
-    <button type="button" class="admin-tab-btn" data-admin-tab="settings">
-        Settings
+    <button
+        class="btn-glass btn-danger"
+        id="admin-signout-btn">
+        Sign Out
     </button>
 </div>
-      <div id="admin-tab-content"></div>
-    </div>
-  `;
 
-  const tabContent = container.querySelector("#admin-tab-content");
+<div class="admin-dashboard">
 
-  container.querySelector("#admin-signout-btn").addEventListener("click", async () => {
-    const confirmed = await confirmModal({
-      title: "Sign Out",
-      message: "Sign out of the admin panel?",
-      confirmLabel: "Sign Out",
-      danger: true,
-    });
-    if (!confirmed) return;
-    await signOutAdmin();
-    appState.set("isAdmin", false);
-    navigateTo("home", {}, { isTab: true });
-  });
+<div class="glass-card admin-stat-card">
+<h3 id="statTasks">0</h3>
+<p>Total Tasks</p>
+</div>
 
-  container.querySelectorAll("[data-admin-tab]").forEach((btn) => {
-    btn.addEventListener("click", () => {
-      hapticSelection();
-      currentTab = btn.dataset.adminTab;
-      container.querySelectorAll("[data-admin-tab]").forEach((b) => b.classList.toggle("active", b === btn));
-      renderTab();
-    });
-  });
+<div class="glass-card admin-stat-card">
+<h3 id="statActive">0</h3>
+<p>Active</p>
+</div>
 
-  function renderTab() {
-    if (unsubRequests) {
-      unsubRequests();
-      unsubRequests = null;
-    }
-    if (currentTab === "requests") {
-    renderRequestsTab();
+<div class="glass-card admin-stat-card">
+<h3 id="statHidden">0</h3>
+<p>Hidden</p>
+</div>
 
-} else if (currentTab === "tasks") {
-    renderTasksTab();
+<div class="glass-card admin-stat-card">
+<h3 id="statPending">0</h3>
+<p>Redeem Requests</p>
+</div>
 
-} else {
-    renderSettingsTab();
+</div>
+
+<div class="admin-tabs">
+
+<button
+class="admin-tab-btn active"
+data-admin-tab="tasks">
+Tasks
+</button>
+
+<button
+class="admin-tab-btn"
+data-admin-tab="requests">
+Requests
+</button>
+
+<button
+class="admin-tab-btn"
+data-admin-tab="settings">
+Settings
+</button>
+
+</div>
+
+<div id="admin-tab-content"></div>
+
+</div>
+`;
+
+const tabContent =
+container.querySelector("#admin-tab-content");
+
+container
+.querySelector("#admin-signout-btn")
+.onclick = async () => {
+
+const ok = await confirmModal({
+title:"Sign Out",
+message:"Sign out of admin panel?",
+confirmLabel:"Sign Out",
+danger:true
+});
+
+if(!ok) return;
+
+await signOutAdmin();
+
+appState.set("isAdmin",false);
+
+navigateTo("home",{},{
+isTab:true
+});
+
+};
+
+container
+.querySelectorAll("[data-admin-tab]")
+.forEach(btn=>{
+
+btn.onclick=()=>{
+
+hapticSelection();
+
+currentTab=btn.dataset.adminTab;
+
+container
+.querySelectorAll("[data-admin-tab]")
+.forEach(b=>
+b.classList.toggle(
+"active",
+b===btn
+));
+
+renderTab();
+
+};
+
+});
+
+async function loadDashboardStats(){
+
+try{
+
+const tasks=
+await getTasksOnce();
+
+document.getElementById("statTasks").textContent=
+tasks.length;
+
+document.getElementById("statActive").textContent=
+tasks.filter(t=>t.active!==false).length;
+
+document.getElementById("statHidden").textContent=
+tasks.filter(t=>t.hidden===true).length;
+
+}catch(e){
+
+console.error(e);
+
 }
-  }
 
+}
+
+function renderTab(){
+
+if(unsubRequests){
+
+unsubRequests();
+
+unsubRequests=null;
+
+}
+
+switch(currentTab){
+
+case "tasks":
+
+renderTasksTab();
+
+break;
+
+case "requests":
+
+renderRequestsTab();
+
+break;
+
+case "settings":
+
+renderSettingsTab();
+
+break;
+
+}
+
+}
+
+loadDashboardStats();
+
+renderTab();
+   container.innerHTML = `
+<div class="admin-page">
+
+    <div class="tasks-header-row">
+        <h3>Admin Panel</h3>
+
+        <button
+            class="btn-glass btn-sm btn-ghost"
+            id="admin-signout-btn">
+            Sign Out
+        </button>
+    </div>
+
+    <div class="admin-tabs">
+
+        <button
+            class="admin-tab-btn active"
+            data-admin-tab="requests">
+            Requests
+        </button>
+
+        <button
+            class="admin-tab-btn"
+            data-admin-tab="tasks">
+            Tasks
+        </button>
+
+        <button
+            class="admin-tab-btn"
+            data-admin-tab="settings">
+            Settings
+        </button>
+
+    </div>
+
+    <div id="admin-tab-content"></div>
+
+</div>
+`;
+
+const tabContent =
+container.querySelector("#admin-tab-content");
+
+
+container
+.querySelector("#admin-signout-btn")
+.addEventListener("click", async () => {
+
+    const ok = await confirmModal({
+
+        title: "Sign Out",
+        message: "Sign out from Admin Panel?",
+        confirmLabel: "Sign Out",
+        danger: true
+
+    });
+
+    if (!ok) return;
+
+    await signOutAdmin();
+
+    appState.set("isAdmin", false);
+
+    navigateTo("home", {}, { isTab: true });
+
+});
+
+
+container
+.querySelectorAll("[data-admin-tab]")
+.forEach(btn => {
+
+    btn.onclick = () => {
+
+        hapticSelection();
+
+        currentTab = btn.dataset.adminTab;
+
+        container
+        .querySelectorAll("[data-admin-tab]")
+        .forEach(b =>
+            b.classList.toggle("active", b === btn)
+        );
+
+        renderTab();
+
+    };
+
+});
+
+
+function renderTab() {
+
+    if (unsubRequests) {
+
+        unsubRequests();
+        unsubRequests = null;
+
+    }
+
+    switch (currentTab) {
+
+        case "requests":
+            renderRequestsTab();
+            break;
+
+        case "tasks":
+            renderTasksTab();
+            break;
+
+        case "settings":
+            renderSettingsTab();
+            break;
+
+    }
+
+}
   function renderRequestsTab() {
     tabContent.innerHTML = cardListSkeleton(3, "120px");
 
@@ -244,79 +477,159 @@ export async function render(container) {
   }
 async function renderTasksTab() {
 
-  tabContent.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <h4>Manage Tasks</h4>
-
-      <button class="btn-glass btn-primary" id="addTaskBtn">
-        + Add Task
-      </button>
-    </div>
-
-    <div id="taskList">
-      ${cardListSkeleton(3)}
-    </div>
-  `;
-
-  const list = tabContent.querySelector("#taskList");
-
-  const tasks = await getTasksOnce();
-
-  if (!tasks.length) {
-    showEmptyState(list, {
-      title: "No Tasks",
-      message: "No custom tasks have been added yet."
-    });
-    return;
-  }
-
-  list.innerHTML = tasks.map(task => `
-      <div class="glass-card" style="margin-bottom:12px;padding:16px;">
-
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <div>
-
-            <h4>${escapeHtml(task.name)}</h4>
-
-            <div>
-              ${task.reward} Coins
-            </div>
-
-          </div>
-
-          <div>
+    tabContent.innerHTML = `
+        <div class="tasks-header-row">
+            <h3>Manage Tasks</h3>
 
             <button
-              class="btn-glass btn-sm"
-              data-edit="${task.id}">
-              Edit
+                class="btn-glass btn-primary"
+                id="addTaskBtn">
+                + Add Task
             </button>
-
-            <button
-              class="btn-glass btn-danger btn-sm"
-              data-delete="${task.id}">
-              Delete
-            </button>
-
-          </div>
-
         </div>
 
-      </div>
-  `).join("");
+        <div id="taskList">
+            ${cardListSkeleton(4)}
+        </div>
+    `;
 
-  tabContent.querySelector("#addTaskBtn")
-      .onclick = () => openTaskModal();
+    const list = tabContent.querySelector("#taskList");
 
-  tasks.forEach(task=>{
+    let tasks = await getTasksOnce();
 
-      list.querySelector(`[data-edit="${task.id}"]`)
-          .onclick=()=>openTaskModal(task);
+    if (!tasks.length) {
+        showEmptyState(list,{
+            title:"No Tasks",
+            message:"No tasks created."
+        });
 
-      list.querySelector(`[data-delete="${task.id}"]`)
-          .onclick=()=>deleteTaskHandler(task);
+        tabContent.querySelector("#addTaskBtn").onclick=()=>openTaskModal();
 
-  });
+        return;
+    }
+
+    tasks.sort((a,b)=>{
+
+        if(a.order===undefined) return 1;
+        if(b.order===undefined) return -1;
+
+        return a.order-b.order;
+
+    });
+
+    list.innerHTML=tasks.map(task=>`
+
+<div class="glass-card admin-task-card">
+
+<div style="display:flex;justify-content:space-between;align-items:center;">
+
+<div>
+
+<h4>${escapeHtml(task.name)}</h4>
+
+<div style="margin-top:6px;color:var(--text-secondary);">
+
+${task.reward} Coins
+
+</div>
+
+<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
+
+<span class="badge ${task.active ? "badge-success":"badge-warning"}">
+
+${task.active ? "Active":"Inactive"}
+
+</span>
+
+<span class="badge ${task.hidden ? "badge-danger":"badge-success"}">
+
+${task.hidden ? "Hidden":"Visible"}
+
+</span>
+
+</div>
+
+</div>
+
+<div style="display:flex;flex-direction:column;gap:8px;">
+
+<button
+class="btn-glass btn-sm"
+data-edit="${task.id}">
+Edit
+</button>
+
+<button
+class="btn-glass btn-sm"
+data-active="${task.id}">
+
+${task.active ? "Deactivate":"Activate"}
+
+</button>
+
+<button
+class="btn-glass btn-sm"
+data-hide="${task.id}">
+
+${task.hidden ? "Show":"Hide"}
+
+</button>
+
+<button
+class="btn-glass btn-danger btn-sm"
+data-delete="${task.id}">
+Delete
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+`).join("");
+
+    tabContent.querySelector("#addTaskBtn").onclick=()=>openTaskModal();
+
+    tasks.forEach(task=>{
+
+        list.querySelector(`[data-edit="${task.id}"]`).onclick=()=>{
+
+            openTaskModal(task);
+
+        };
+
+        list.querySelector(`[data-delete="${task.id}"]`).onclick=()=>{
+
+            deleteTaskHandler(task);
+
+        };
+
+        list.querySelector(`[data-active="${task.id}"]`).onclick=async()=>{
+
+            await updateTask(task.id,{
+                active:!task.active
+            });
+
+            toastSuccess(task.active ? "Task deactivated":"Task activated");
+
+            renderTasksTab();
+
+        };
+
+        list.querySelector(`[data-hide="${task.id}"]`).onclick=async()=>{
+
+            await updateTask(task.id,{
+                hidden:!task.hidden
+            });
+
+            toastSuccess(task.hidden ? "Task visible":"Task hidden");
+
+            renderTasksTab();
+
+        };
+
+    });
 
 }
    async function deleteTaskHandler(task){
@@ -337,7 +650,7 @@ async function renderTasksTab() {
     renderTasksTab();
 
 }
-   async function openTaskModal(task = null) {
+async function openTaskModal(task = null) {
 
   const isEdit = !!task;
 
@@ -349,60 +662,61 @@ async function renderTasksTab() {
 
       <div class="field">
         <label>Task Name</label>
-        <input id="taskName"
-               value="${task?.name || ""}">
+        <input id="taskName" value="${task?.name || ""}">
       </div>
 
       <div class="field">
         <label>Reward</label>
-        <input id="taskReward"
-               type="number"
-               value="${task?.reward || ""}">
+        <input id="taskReward" type="number" value="${task?.reward || ""}">
       </div>
 
       <div class="field">
         <label>Description</label>
-        <textarea id="taskDescription">${
-          task?.description || ""
-        }</textarea>
+        <textarea id="taskDescription">${task?.description || ""}</textarea>
       </div>
 
       <div class="field">
         <label>Task URL</label>
-        <input id="taskUrl"
-               value="${task?.taskUrl || ""}">
+        <input id="taskUrl" value="${task?.taskUrl || ""}">
       </div>
 
       <div class="field">
         <label>Icon URL</label>
-        <input id="taskIcon"
-               value="${task?.icon || ""}">
+        <input id="taskIcon" value="${task?.icon || ""}">
       </div>
 
       <div class="field">
         <label>Referral Code</label>
-        <input id="taskReferral"
-               value="${task?.referralCode || ""}">
+        <input id="taskReferral" value="${task?.referralCode || ""}">
       </div>
 
       <div class="field">
         <label>Notes</label>
-        <textarea id="taskNotes">${
-          task?.notes || ""
-        }</textarea>
+        <textarea id="taskNotes">${task?.notes || ""}</textarea>
       </div>
 
       <div class="field">
         <label>Steps (one per line)</label>
-        <textarea id="taskSteps">${
-          (task?.steps || []).join("\n")
-        }</textarea>
+        <textarea id="taskSteps">${(task?.steps || []).join("\n")}</textarea>
+      </div>
+
+      <div class="field">
+        <label>Status</label>
+        <select id="taskStatus">
+            <option value="true" ${task?.active !== false ? "selected" : ""}>
+                Active
+            </option>
+
+            <option value="false" ${task?.active === false ? "selected" : ""}>
+                Hidden
+            </option>
+        </select>
       </div>
 
       <button
           id="saveTaskBtn"
           class="btn-glass btn-primary"
-          style="width:100%;margin-top:18px;">
+          style="width:100%;margin-top:20px;">
 
           ${isEdit ? "Update Task" : "Create Task"}
 
@@ -412,26 +726,30 @@ async function renderTasksTab() {
 
     onMount(card){
 
-      card.querySelector("#saveTaskBtn").onclick=()=>{
+        card.querySelector("#saveTaskBtn").onclick = () => {
 
-        saveTask(task);
+            saveTask(task);
 
-      };
+        };
 
     }
 
   });
 
 }
-   async function saveTask(existingTask = null) {
+async function saveTask(existingTask = null) {
 
     const name = document.getElementById("taskName").value.trim();
     const reward = Number(document.getElementById("taskReward").value);
+
     const description = document.getElementById("taskDescription").value.trim();
     const taskUrl = document.getElementById("taskUrl").value.trim();
     const icon = document.getElementById("taskIcon").value.trim();
     const referralCode = document.getElementById("taskReferral").value.trim();
     const notes = document.getElementById("taskNotes").value.trim();
+
+    const active =
+        document.getElementById("taskStatus").value === "true";
 
     const steps = document
         .getElementById("taskSteps")
@@ -451,6 +769,7 @@ async function renderTasksTab() {
     }
 
     const data = {
+
         name,
         reward,
         description,
@@ -459,7 +778,11 @@ async function renderTasksTab() {
         referralCode,
         notes,
         steps,
-        active: true
+
+        active,
+
+        updatedAt: Date.now()
+
     };
 
     try {
@@ -472,6 +795,9 @@ async function renderTasksTab() {
 
         } else {
 
+            data.createdAt = Date.now();
+            data.sortOrder = Date.now();
+
             await createTask(data);
 
             toastSuccess("Task created");
@@ -482,9 +808,9 @@ async function renderTasksTab() {
 
         renderTasksTab();
 
-    } catch (e) {
+    } catch (err) {
 
-        console.error(e);
+        console.error(err);
 
         toastError("Couldn't save task.");
 
