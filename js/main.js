@@ -199,16 +199,8 @@ async function boot() {
     return;
   }
 
-  setSplashStatus("Loading your wallet…");
-  subscribeUser(
-    telegramUser.telegramId,
-    (liveUser) => {
-      if (liveUser) appState.set("appUser", liveUser);
-    },
-    (err) => {
-      console.error("[main] user subscription error:", err);
-    }
-  );
+ subscribeUser(
+    appUser.firebaseUid,
 
   setSplashStatus("Loading home…");
   updateHeaderFromTelegramUser(telegramUser);
