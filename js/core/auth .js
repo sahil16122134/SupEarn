@@ -62,17 +62,22 @@ export async function bootstrapTelegramAuth() {
     throw new AuthError("NO_TELEGRAM_USER", "Could not read your Telegram profile.");
   }
 
-  let firebaseUser;
-  try {
-    firebaseUser = await waitForFirebaseUser();
-    if (!firebaseUser) {
-      const cred = await signInAnonymously(auth);
-      firebaseUser = cred.user;
-    }
-  } catch (err) {
-    throw new AuthError("FIREBASE_AUTH_FAILED", "Could not connect to SupEarn's servers.");
-  }
+ let firebaseUser;
 
+try {
+    if (auth.currentUser) {
+        firebaseUser = auth.currentUser;
+    } else {
+        const cred = await signInAnonymously(auth);
+        firebaseUser = cred.user;
+    }
+} catch (err) {
+    console.error("Anonymous auth failed:", err);
+    throw new AuthError(
+        "FIREBASE_AUTH_FAILED",
+        "Could not connect to SupEarn's servers."
+    );
+}
   const firebaseUid = firebaseUser.uid;
 
   let appUser;
