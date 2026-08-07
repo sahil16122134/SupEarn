@@ -79,12 +79,11 @@ export async function bootstrapTelegramAuth() {
   try {
     appUser = await getOrCreateUser(telegramUser, firebaseUid);
   } catch (err) {
-    if (err && err.code === "permission-denied") {
-      throw new AuthError(
-        "ACCOUNT_MISMATCH",
-        "This SupEarn account is linked to a different device session."
-      );
-    }
+    console.error(err);
+throw new AuthError(
+    "FIRESTORE_BOOTSTRAP_FAILED",
+    "Could not load your account."
+);
     throw new AuthError("FIRESTORE_BOOTSTRAP_FAILED", "Could not load your account.");
   }
 
