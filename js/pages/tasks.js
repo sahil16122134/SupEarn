@@ -273,7 +273,10 @@ if (task.type === "custom") {
       flyCoinsToWallet(buttonEl, document.getElementById("header-avatar"), 6);
       triggerConfetti(28);
       showRewardPopup(task.reward);
-      loadTasks();
+
+// Reload user data if your app has this function
+// (otherwise just keep loadTasks())
+await loadTasks();
     } catch (err) {
       if (err && err.message === "ALREADY_REWARDED") {
         toastWarning("This task has already been rewarded.");
