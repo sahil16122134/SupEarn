@@ -97,70 +97,48 @@ let unsubRequests = null;
 container.innerHTML = `
 <div class="admin-page">
 
-<div class="admin-topbar">
-    <div>
-        <h2>Admin Panel</h2>
-        <small>SupEarn Management</small>
-    </div>
+  <div class="tasks-header-row">
+    <h3>Admin Panel</h3>
 
     <button
-        class="btn-glass btn-danger"
-        id="admin-signout-btn">
-        Sign Out
+      class="btn-glass btn-danger"
+      id="admin-signout-btn">
+      Sign Out
     </button>
-</div>
+  </div>
 
-<div class="admin-dashboard">
+  <div class="admin-tabs">
 
-<div class="glass-card admin-stat-card">
-<h3 id="statTasks">0</h3>
-<p>Total Tasks</p>
-</div>
+    <button
+      class="admin-tab-btn active"
+      data-admin-tab="dashboard">
+      Dashboard
+    </button>
 
-<div class="glass-card admin-stat-card">
-<h3 id="statActive">0</h3>
-<p>Active</p>
-</div>
+    <button
+      class="admin-tab-btn"
+      data-admin-tab="tasks">
+      Tasks
+    </button>
 
-<div class="glass-card admin-stat-card">
-<h3 id="statHidden">0</h3>
-<p>Hidden</p>
-</div>
+    <button
+      class="admin-tab-btn"
+      data-admin-tab="requests">
+      Requests
+    </button>
 
-<div class="glass-card admin-stat-card">
-<h3 id="statPending">0</h3>
-<p>Redeem Requests</p>
-</div>
+    <button
+      class="admin-tab-btn"
+      data-admin-tab="settings">
+      Settings
+    </button>
 
-</div>
+  </div>
 
-<div class="admin-tabs">
-
-<button
-class="admin-tab-btn active"
-data-admin-tab="tasks">
-Tasks
-</button>
-
-<button
-class="admin-tab-btn"
-data-admin-tab="requests">
-Requests
-</button>
-
-<button
-class="admin-tab-btn"
-data-admin-tab="settings">
-Settings
-</button>
-
-</div>
-
-<div id="admin-tab-content"></div>
+  <div id="admin-tab-content"></div>
 
 </div>
 `;
-
 const tabContent =
 container.querySelector("#admin-tab-content");
 
@@ -235,87 +213,84 @@ console.error(e);
 
 }
 
-function renderTab(){
-
-if(unsubRequests){
-
-unsubRequests();
-
-unsubRequests=null;
-
-}
-
-switch(currentTab){
-
-case "tasks":
-
-renderTasksTab();
-
-break;
-
-case "requests":
-
-renderRequestsTab();
-
-break;
-
-case "settings":
-
-renderSettingsTab();
-
-break;
-
-}
-
-}
-
-loadDashboardStats();
-
-renderTab();
-   container.innerHTML = `
+container.innerHTML = `
 <div class="admin-page">
 
-    <div class="tasks-header-row">
-        <h3>Admin Panel</h3>
+<div class="tasks-header-row">
+    <h3>Admin Panel</h3>
 
-        <button
-            class="btn-glass btn-sm btn-ghost"
-            id="admin-signout-btn">
-            Sign Out
-        </button>
-    </div>
+    <button
+        class="btn-glass btn-sm btn-ghost"
+        id="admin-signout-btn">
+        Sign Out
+    </button>
+</div>
 
-    <div class="admin-tabs">
+<div class="admin-tabs">
 
-        <button
-            class="admin-tab-btn active"
-            data-admin-tab="requests">
-            Requests
-        </button>
+    <button
+        class="admin-tab-btn active"
+        data-admin-tab="dashboard">
+        Dashboard
+    </button>
 
-        <button
-            class="admin-tab-btn"
-            data-admin-tab="tasks">
-            Tasks
-        </button>
+    <button
+        class="admin-tab-btn"
+        data-admin-tab="tasks">
+        Tasks
+    </button>
 
-        <button
-            class="admin-tab-btn"
-            data-admin-tab="settings">
-            Settings
-        </button>
+    <button
+        class="admin-tab-btn"
+        data-admin-tab="requests">
+        Requests
+    </button>
 
-    </div>
+    <button
+        class="admin-tab-btn"
+        data-admin-tab="settings">
+        Settings
+    </button>
 
-    <div id="admin-tab-content"></div>
+</div>
+
+<div id="admin-tab-content"></div>
 
 </div>
 `;
 
-const tabContent =
-container.querySelector("#admin-tab-content");
+const tabContent = container.querySelector("#admin-tab-content");
 
+function renderTab() {
 
+    if (unsubRequests) {
+        unsubRequests();
+        unsubRequests = null;
+    }
+
+    switch (currentTab) {
+
+        case "dashboard":
+            loadDashboardStats();
+            break;
+
+        case "tasks":
+            renderTasksTab();
+            break;
+
+        case "requests":
+            renderRequestsTab();
+            break;
+
+        case "settings":
+            renderSettingsTab();
+            break;
+
+    }
+
+}
+
+renderTab();
 container
 .querySelector("#admin-signout-btn")
 .addEventListener("click", async () => {
@@ -528,7 +503,17 @@ async function renderTasksTab() {
 <div style="font-size:13px;color:#999;">
 ${task.reward} Coins
 </div>
+<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
 
+<span class="badge ${task.active ? "badge-success" : "badge-warning"}">
+${task.active ? "Active" : "Inactive"}
+</span>
+
+<span class="badge ${task.hidden ? "badge-danger" : "badge-success"}">
+${task.hidden ? "Hidden" : "Visible"}
+</span>
+
+</div>
 <div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
 
 <span class="badge ${task.active ? "badge-success":"badge-danger"}">
@@ -580,33 +565,43 @@ Delete
     tabContent.querySelector("#addTaskBtn").onclick=()=>openTaskModal();
 tasks.forEach(task => {
 
-    list.querySelector(`[data-edit="${task.id}"]`).onclick = () => openTaskModal(task);
+    list.querySelector(`[data-edit="${task.id}"]`)
+        .onclick = () => openTaskModal(task);
 
-    list.querySelector(`[data-delete="${task.id}"]`).onclick = () => deleteTaskHandler(task);
+    list.querySelector(`[data-delete="${task.id}"]`)
+        .onclick = () => deleteTaskHandler(task);
 
-    list.querySelector(`[data-active="${task.id}"]`).onclick = async () => {
+    list.querySelector(`[data-toggle-active="${task.id}"]`)
+        .onclick = async () => {
 
-        await updateTask(task.id, {
-            active: !task.active
-        });
+            await updateTask(task.id, {
+                active: !task.active
+            });
 
-        toastSuccess(task.active ? "Task deactivated" : "Task activated");
+            toastSuccess(
+                task.active
+                    ? "Task disabled"
+                    : "Task enabled"
+            );
 
-        renderTasksTab();
+            renderTasksTab();
+        };
 
-    };
+    list.querySelector(`[data-toggle-hidden="${task.id}"]`)
+        .onclick = async () => {
 
-    list.querySelector(`[data-hide="${task.id}"]`).onclick = async () => {
+            await updateTask(task.id, {
+                hidden: !task.hidden
+            });
 
-        await updateTask(task.id, {
-            hidden: !task.hidden
-        });
+            toastSuccess(
+                task.hidden
+                    ? "Task is now visible"
+                    : "Task is now hidden"
+            );
 
-        toastSuccess(task.hidden ? "Task visible" : "Task hidden");
-
-        renderTasksTab();
-
-    };
+            renderTasksTab();
+        };
 
 });
    async function deleteTaskHandler(task){
