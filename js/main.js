@@ -200,7 +200,7 @@ async function boot() {
   }
 
  subscribeUser(
-    appUser.firebaseUid,
+    appUser.firebaseUid,)
 
   setSplashStatus("Loading home…");
   updateHeaderFromTelegramUser(telegramUser);
