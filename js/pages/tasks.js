@@ -84,8 +84,7 @@ export async function render(container) {
     const telegramUser = appState.get("telegramUser") || {};
     const firebaseUid = appState.get("firebaseUid");
     const telegramId = telegramUser.telegramId;
-     const user = appState.get("user") || {};
-const completedCustomTasks = user.completedCustomTasks || {};
+   
 
     let adsgramCompleted = false;
     if (settings.adsgramBlockId) {
