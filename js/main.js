@@ -175,15 +175,9 @@ function waitForFirstValue(subscribeFn, stateKey) {
 
 async function boot() {
   setSplashStatus("Starting up…");
-
-  // Temporary for debugging in Chrome
-// if (!isInsideTelegram()) {
-//     showOutsideTelegramScreen();
-//     return;
-// }
-
+ if (isInsideTelegram()) {
   initTelegram();
-
+ }
  setSplashStatus("Signing in with Telegram…");
 
 let telegramUser;
