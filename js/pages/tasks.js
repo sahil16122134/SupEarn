@@ -95,8 +95,14 @@ const completedCustomTasks = user.completedCustomTasks || {};
         adsgramCompleted = false;
       }
     }
-    const adsgramTasks = getAdsgramTaskEntries(settings, adsgramCompleted);
+   const adsgramTasks = getAdsgramTaskEntries(settings, adsgramCompleted);
 const adeaslyTasks = await fetchAdeaslyTasks(settings.adeaslyApiKey, telegramId);
+
+// ADD THESE TWO LINES
+const completedCustomTasks =
+    appState.get("appUser")?.completedCustomTasks || {};
+
+const customTasks = await getTasksOnce();
 
 // Admin tasks
 const adminTasks = customTasks.map(task => ({
