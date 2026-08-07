@@ -71,11 +71,13 @@ console.log("Firebase User:", firebaseUser);
 
 console.log("Firestore User:", appUser);
   } catch (err) {
-    console.error(err);
-throw new AuthError(
-    "FIRESTORE_BOOTSTRAP_FAILED",
-    "Could not load your account."
-);
+    console.error("getOrCreateUser failed:", err);
+
+    throw new AuthError(
+        "FIRESTORE_BOOTSTRAP_FAILED",
+        err.message || "Could not load your account."
+    );
+
     
   }
 
