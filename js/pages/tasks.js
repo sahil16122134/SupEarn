@@ -194,7 +194,7 @@ allTasks = [
   if (isBusy) return;
   if (!requireOnline()) return;
 
-  // Custom Admin Task
+  // Custom admin task
   if (task.type === "custom") {
     showCustomTaskPopup(task);
     return;
@@ -205,14 +205,7 @@ allTasks = [
   } else if (task.provider === "Adeasly") {
     await handleAdeaslyAction(task, buttonEl);
   }
-  }
-    if (!requireOnline()) return;
 
-    if (task.provider === "AdsGram") {
-      await handleAdsgramAction(task, buttonEl);
-    } else if (task.provider === "Adeasly") {
-      await handleAdeaslyAction(task, buttonEl);
-    }
   }
 
   async function handleAdsgramAction(task, buttonEl) {
