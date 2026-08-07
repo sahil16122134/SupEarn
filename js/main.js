@@ -1,8 +1,15 @@
 /* ==========================================================================
    SupEarn — js/main.js
    Application entry point. Runs the startup chain described in the spec:
-   Telegram Login → Firebase Auth → Firestore User Check → Create User →
-   Load Settings → Load Wallet → Load Home — then wires every global
+Telegram SDK →
+Read Telegram User →
+Firebase Anonymous Authentication →
+Get firebaseUid →
+Firestore User Check →
+Create User →
+Load Settings →
+Load Wallet →
+Load Home — then wires every global
    service (router, network monitor, global UI effects, pull-to-refresh,
    header, hidden admin gesture) exactly once.
    ========================================================================== */
@@ -176,20 +183,27 @@ async function boot() {
 
   initTelegram();
 
-  setSplashStatus("Signing in…");
-  let telegramUser, appUser;
-  try {
+ setSplashStatus("Signing in with Telegram…");
+
+let telegramUser;
+let appUser;
+let firebaseUid;
+
+try {
     const result = await bootstrapTelegramAuth();
+
     telegramUser = result.telegramUser;
     appUser = result.appUser;
-  } catch (err) {
+    firebaseUid = result.firebaseUid;
+} catch (err) {
     const message = err instanceof AuthError ? err.message : "Something went wrong while starting up.";
     showSplashError(message, () => window.location.reload());
     return;
   }
 
-  appState.set("telegramUser", telegramUser);
-  appState.set("appUser", appUser);
+appState.set("telegramUser", telegramUser);
+appState.set("firebaseUid", firebaseUid);
+appState.set("appUser", appUser);
 
   setSplashStatus("Loading settings…");
   try {
@@ -200,9 +214,9 @@ async function boot() {
   }
 
   setSplashStatus("Loading your wallet…");
-  subscribeUser(
-    telegramUser.telegramId,
-    (liveUser) => {
+subscribeUser(
+firebaseUid,
+(liveUser) => {
       if (liveUser) appState.set("appUser", liveUser);
     },
     (err) => {
