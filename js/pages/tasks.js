@@ -118,7 +118,6 @@ allTasks = [
     ...adsgramTasks,
     ...adeaslyTasks
 ];
-    allTasks = [...adsgramTasks, ...adeaslyTasks];
     renderList();
   }
 
@@ -195,7 +194,7 @@ allTasks = [
   if (isBusy) return;
   if (!requireOnline()) return;
 
-  // Custom admin task
+  // Custom Admin Task
   if (task.type === "custom") {
     showCustomTaskPopup(task);
     return;
@@ -206,9 +205,7 @@ allTasks = [
   } else if (task.provider === "Adeasly") {
     await handleAdeaslyAction(task, buttonEl);
   }
-
   }
-    if (isBusy) return;
     if (!requireOnline()) return;
 
     if (task.provider === "AdsGram") {
