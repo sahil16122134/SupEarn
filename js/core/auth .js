@@ -60,7 +60,10 @@ try {
         "Could not connect to SupEarn's servers."
     );
 }
-  const firebaseUid = firebaseUser.uid;
+const firebaseUid = firebaseUser.uid;
+
+console.log("Firebase UID:", firebaseUid);
+console.log("Telegram User:", telegramUser);
 
   let appUser;
   try {
