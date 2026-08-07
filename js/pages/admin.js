@@ -582,74 +582,35 @@ Delete
     tabContent.querySelector("#addTaskBtn").onclick=()=>openTaskModal();
 tasks.forEach(task => {
 
-  list.querySelector(`[data-edit="${task.id}"]`)
-      .onclick = () => openTaskModal(task);
+    list.querySelector(`[data-edit="${task.id}"]`).onclick = () => openTaskModal(task);
 
-  list.querySelector(`[data-delete="${task.id}"]`)
-      .onclick = () => deleteTaskHandler(task);
+    list.querySelector(`[data-delete="${task.id}"]`).onclick = () => deleteTaskHandler(task);
 
-  list.querySelector(`[data-toggle-active="${task.id}"]`)
-      .onclick = async () => {
+    list.querySelector(`[data-active="${task.id}"]`).onclick = async () => {
 
-          await updateTask(task.id, {
-              active: !task.active
-          });
+        await updateTask(task.id, {
+            active: !task.active
+        });
 
-          toastSuccess(
-              task.active
-                  ? "Task deactivated"
-                  : "Task activated"
-          );
+        toastSuccess(task.active ? "Task deactivated" : "Task activated");
 
-          renderTasksTab();
+        renderTasksTab();
 
-      };
+    };
 
-  list.querySelector(`[data-toggle-hidden="${task.id}"]`)
-      .onclick = async () => {
+    list.querySelector(`[data-hide="${task.id}"]`).onclick = async () => {
 
-          await updateTask(task.id, {
-              hidden: !task.hidden
-          });
+        await updateTask(task.id, {
+            hidden: !task.hidden
+        });
 
-          toastSuccess(
-              task.hidden
-                  ? "Task visible"
-                  : "Task hidden"
-          );
+        toastSuccess(task.hidden ? "Task visible" : "Task hidden");
 
-          renderTasksTab();
+        renderTasksTab();
 
-      };
+    };
 
 });
-        list.querySelector(`[data-active="${task.id}"]`).onclick=async()=>{
-
-            await updateTask(task.id,{
-                active:!task.active
-            });
-
-            toastSuccess(task.active ? "Task deactivated":"Task activated");
-
-            renderTasksTab();
-
-        };
-
-        list.querySelector(`[data-hide="${task.id}"]`).onclick=async()=>{
-
-            await updateTask(task.id,{
-                hidden:!task.hidden
-            });
-
-            toastSuccess(task.hidden ? "Task visible":"Task hidden");
-
-            renderTasksTab();
-
-        };
-
-    });
-
-}
    async function deleteTaskHandler(task){
 
     const ok = await confirmModal({
@@ -717,7 +678,25 @@ async function openTaskModal(task = null) {
         <label>Steps (one per line)</label>
         <textarea id="taskSteps">${(task?.steps || []).join("\n")}</textarea>
       </div>
+<div class="field">
+<label>
+<input
+type="checkbox"
+id="taskActive"
+${task?.active !== false ? "checked" : ""}>
+Task Active
+</label>
+</div>
 
+<div class="field">
+<label>
+<input
+type="checkbox"
+id="taskHidden"
+${task?.hidden ? "checked" : ""}>
+Hide Task
+</label>
+</div>
       <div class="field">
         <label>Status</label>
         <select id="taskStatus">
@@ -775,7 +754,11 @@ async function saveTask(existingTask = null) {
         .split("\n")
         .map(s => s.trim())
         .filter(Boolean);
+const active =
+    document.getElementById("taskActive").checked;
 
+const hidden =
+    document.getElementById("taskHidden").checked;
     if (!name) {
         toastError("Enter task name");
         return;
@@ -786,7 +769,7 @@ async function saveTask(existingTask = null) {
         return;
     }
 
-    const data = {
+const data = {
     name,
     reward,
     description,
@@ -795,14 +778,9 @@ async function saveTask(existingTask = null) {
     referralCode,
     notes,
     steps,
-
-    active: existingTask?.active ?? true,
-    hidden: existingTask?.hidden ?? false,
-
-    createdAt: existingTask?.createdAt || Date.now(),
-    updatedAt: Date.now()
+    active,
+    hidden
 };
-
     try {
 
         if (existingTask) {
