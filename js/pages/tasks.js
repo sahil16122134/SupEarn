@@ -110,7 +110,7 @@ const adminTasks = customTasks.map(task => ({
     taskUrl: task.taskUrl,
     iconUrl: task.icon,
     estimatedTime: "",
-    status: "start",
+    status: task.completed ? "completed" : "start",
     type: "custom"
 }));
 
@@ -353,12 +353,19 @@ function showCustomTaskPopup(task) {
         <div style="margin-top:20px">
 
           <button
-            id="customTaskStart"
-            class="btn-glass btn-primary">
+  id="customTaskStart"
+  class="btn-glass btn-primary"
+  ${task.status === "completed" ? "disabled" : ""}>
 
-            Start Task (+${task.reward})
+  ${
+    task.status === "claim"
+      ? "Claim Reward"
+      : task.status === "completed"
+      ? "Completed"
+      : `Start Task (+${task.reward})`
+  }
 
-          </button>
+</button>
 
         </div>
 
@@ -367,27 +374,38 @@ function showCustomTaskPopup(task) {
 
     onMount(card){
 
-      card
-      .querySelector("#customTaskStart")
-      .onclick=()=>{
+      card.querySelector("#customTaskStart").onclick = async () => {
 
-        if (task.taskUrl) {
-    openExternalLink(task.taskUrl);
-} else {
-    toastError("Task URL not available.");
-        };
+    if (task.status === "completed") return;
 
-      };
-
+    if (task.status === "claim") {
+        await creditTaskReward(
+            task,
+            card.querySelector("#customTaskStart"),
+            "Claim Reward"
+        );
+        return;
     }
 
-  });
+    if (task.taskUrl) {
+    openExternalLink(task.taskUrl);
 
-}
+    task.status = "claim";
+
+    // Close popup
+    document.querySelector(".modal-overlay")?.remove();
+
+} else {
+    toastError("Task URL not available.");
+    }
+
+};
+    }
+  });
   const unsubOnline = subscribeOnline((online) => {
     if (online) loadTasks();
   });
-
+}
   await loadTasks();
 
   return () => {
