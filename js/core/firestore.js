@@ -21,7 +21,6 @@ import {
   runTransaction,
   serverTimestamp,
   increment,
-  deleteDoc,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 import { db } from "./firebase-config.js";
 
@@ -111,7 +110,7 @@ export async function getOrCreateUser(telegramUser, firebaseUid) {
         lastName: telegramUser.lastName,
         profilePhoto: telegramUser.profilePhoto,
         languageCode: telegramUser.languageCode,
-        updatedAt: new Date(),
+         updatedAt: serverTimestamp(),
       };
       tx.update(ref, freshFields);
       return { id: ref.id, ...data, ...freshFields };
@@ -309,11 +308,19 @@ export async function createRedeemRequestTx(firebaseUid, telegramId, requestPayl
 }
 
 export function subscribeAllPendingRedeemRequests(callback, onError) {
-  const q = query(redeemCol, where("status", "==", "pending"), orderBy("createdAt", "desc"));
+  const q = query(
+    redeemCol,
+    where("status", "==", "pending"),
+    orderBy("createdAt", "desc")
+  );
+
   return onSnapshot(
     q,
     (snap) => callback(snap.docs.map((d) => ({ id: d.id, ...d.data() }))),
-    (err) => onError && onError(err)
+    (err) => {
+      console.error("Redeem listener:", err);
+      if (onError) onError(err);
+    }
   );
 }
 
@@ -342,7 +349,9 @@ export async function resolveRedeemRequestTx(requestId, firebaseUid, approve, re
       userUpdate.coinBalance = increment(refundAmount);
       userUpdate.totalRedeemedCoins = increment(-refundAmount);
     }
-    tx.update(userDocRef, userUpdate);
+   tx.update(userDocRef, userUpdate);
+
+return true;
   });
 }
 
@@ -464,11 +473,13 @@ export async function creditTaskRewardOnceTx(firebaseUid, telegramId, taskId, am
       amount,
       rewardedAt: serverTimestamp(),
     });
-    tx.update(userDocRef, {
-      coinBalance: increment(amount),
-      totalEarnedCoins: increment(amount),
-      updatedAt: serverTimestamp(),
-    });
+  tx.update(userDocRef, {
+  coinBalance: increment(amount),
+  totalEarnedCoins: increment(amount),
+  updatedAt: serverTimestamp(),
+});
+
+return true;
   });
 }
 
