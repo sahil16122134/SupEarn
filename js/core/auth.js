@@ -72,11 +72,12 @@ try {
     } else {
         await waitForFirebaseUser();
     }
- 
-}
 } catch (err) {
-    throw new AuthError("FIREBASE_AUTH_FAILED", "Could not connect to SupEarn's servers.");
-  }
+    throw new AuthError(
+        "FIREBASE_AUTH_FAILED",
+        "Could not connect to SupEarn's servers."
+    );
+}
 
   const firebaseUid = firebaseUser.uid;
 
@@ -144,9 +145,10 @@ export async function signInAdmin(email, password) {
 export async function signOutAdmin() {
   await signOut(auth);
 }
-  export function getFirebaseUid() {
+ export function getFirebaseUid() {
     return auth.currentUser?.uid ?? null;
+}
+
 export function getCurrentFirebaseUser() {
     return auth.currentUser;
 }
-
