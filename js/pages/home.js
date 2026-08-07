@@ -134,7 +134,10 @@ export async function render(container) {
 
     // Animate the balance counter on subsequent updates (not the first paint).
     if (previousBalance !== null && previousBalance !== user.coinBalance) {
-      pulseCounter(container.querySelector("#wallet-balance-value"));
+      const balanceEl = container.querySelector("#wallet-balance-value");
+if (balanceEl) {
+    pulseCounter(balanceEl);
+}
     }
     previousBalance = user.coinBalance;
   }
