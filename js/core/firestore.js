@@ -150,11 +150,14 @@ export async function getOrCreateUser(telegramUser, firebaseUid) {
 export function subscribeUser(firebaseUid, callback, onError) {
   return onSnapshot(
     userRef(firebaseUid),
-    (snap) => callback(snap.exists() ? { id: snap.id, ...snap.data() } : null),
-(err) => {
-    console.error("subscribeUser:", err);
-    if (onError) onError(err);
-
+    (snap) => {
+      callback(snap.exists() ? { id: snap.id, ...snap.data() } : null);
+    },
+    (err) => {
+      console.error("subscribeUser:", err);
+      if (onError) onError(err);
+    }
+  );
 }
 
 export async function getUserOnce(firebaseUid) {
