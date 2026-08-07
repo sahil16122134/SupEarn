@@ -10,7 +10,6 @@
 import {
   signInAnonymously,
   signInWithEmailAndPassword,
-  onAuthStateChanged,
   signOut,
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import { auth } from "./firebase-config.js";
@@ -25,23 +24,6 @@ export class AuthError extends Error {
     this.name = "AuthError";
     this.code = code;
   }
-}
-
-let firebaseUser;
-
-try {
-    if (!auth.currentUser) {
-        const cred = await signInAnonymously(auth);
-        firebaseUser = cred.user;
-    } else {
-        firebaseUser = auth.currentUser;
-    }
-} catch (err) {
-    console.error("Anonymous auth failed:", err);
-    throw new AuthError(
-        "FIREBASE_AUTH_FAILED",
-        "Could not connect to SupEarn's servers."
-    );
 }
 
 /**
@@ -82,14 +64,16 @@ try {
 
   let appUser;
   try {
-    appUser = await getOrCreateUser(telegramUser, firebaseUid);
+  appUser = await getOrCreateUser(telegramUser, firebaseUid);
+
+console.log("Firestore User:", appUser);
   } catch (err) {
     console.error(err);
 throw new AuthError(
     "FIRESTORE_BOOTSTRAP_FAILED",
     "Could not load your account."
 );
-    throw new AuthError("FIRESTORE_BOOTSTRAP_FAILED", "Could not load your account.");
+    
   }
 
   // Only ever attempts to record a referral once, the first time this
