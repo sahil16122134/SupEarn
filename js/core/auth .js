@@ -64,7 +64,7 @@ const firebaseUid = firebaseUser.uid;
 
 console.log("Firebase UID:", firebaseUid);
 console.log("Telegram User:", telegramUser);
-
+console.log("Firebase User:", firebaseUser);
   let appUser;
   try {
   appUser = await getOrCreateUser(telegramUser, firebaseUid);
