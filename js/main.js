@@ -203,7 +203,8 @@ try {
 
 appState.set("telegramUser", telegramUser);
 appState.set("firebaseUid", firebaseUid);
-appState.set("appUser", appUser);
+   appState.set("appUser", appUser);
+appState.set("user", appUser);
 
   setSplashStatus("Loading settings…");
   try {
@@ -218,6 +219,7 @@ subscribeUser(
 firebaseUid,
 (liveUser) => {
       if (liveUser) appState.set("appUser", liveUser);
+appState.set("user", appUser);
     },
     (err) => {
       console.error("[main] user subscription error:", err);
