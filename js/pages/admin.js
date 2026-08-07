@@ -91,8 +91,6 @@ export async function render(container) {
     `;
     return () => {};
   }
-let currentTab = "requests";
-let unsubRequests = null;
 let currentTab = "dashboard";
 let unsubRequests = null;
 
