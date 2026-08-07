@@ -491,3 +491,41 @@ export async function isUserAdmin(firebaseUid) {
   const snap = await getDoc(userRef(firebaseUid));
   return snap.exists() && snap.data().role === "admin";
 }
+/* ============================================================ */
+/* TASKS                                                         */
+/* ============================================================ */
+
+const tasksCol = collection(db, "tasks");
+
+/**
+ * Subscribe to all active tasks.
+ */
+export function subscribeTasks(callback, onError) {
+  const q = query(tasksCol, where("active", "==", true));
+
+  return onSnapshot(
+    q,
+    (snap) =>
+      callback(
+        snap.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }))
+      ),
+    (err) => onError && onError(err)
+  );
+}
+
+/**
+ * Get all tasks once.
+ */
+export async function getTasksOnce() {
+  const q = query(tasksCol, where("active", "==", true));
+
+  const snap = await getDocs(q);
+
+  return snap.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+}
