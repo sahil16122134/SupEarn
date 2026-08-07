@@ -56,7 +56,7 @@ export function formatDateShort(value) {
 
 /** Simple client-side email format check. */
 export function isValidEmail(value) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
+ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || "").trim());
 }
 
 /** Simple client-side UPI ID format check (name@bank). */
