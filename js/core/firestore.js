@@ -29,8 +29,7 @@ import { db } from "./firebase-config.js";
 /* SETTINGS                                                       */
 /* ============================================================ */
 
-const SETTINGS_DOC = doc(db, "settings", "app");
-
+const SETTINGS_DOC = doc(db, "settings", "economy");
 /** Hard-coded fallback used only if the settings document cannot be read
  *  (e.g. very first deployment before an admin has configured it, or a
  *  transient offline state during startup). The live app always prefers
@@ -38,7 +37,7 @@ const SETTINGS_DOC = doc(db, "settings", "app");
 const DEFAULT_SETTINGS = {
   watchRewardCoins: 10,
   dailyRewardCoins: [10, 15, 20, 25, 30, 40, 60],
-  coinPerRupee: 100,
+  coinsPerRupee: 100,
   minimumUpiRedeem: 1500,
   giftCardMinimums: { amazon: 2000, flipkart: 2000, myntra: 2500 },
   bannerAdId: "",
@@ -90,10 +89,15 @@ function userRef(firebaseUid) {
  * data — it is never used as a Firestore document ID.
  */
 export async function getOrCreateUser(telegramUser, firebaseUid) {
-  const ref = userRef(firebaseUid);
 
-  return runTransaction(db, async (tx) => {
-    const snap = await tx.get(ref);
+    if (!firebaseUid) {
+        throw new Error("INVALID_FIREBASE_UID");
+    }
+
+    const ref = userRef(firebaseUid);
+
+    return runTransaction(db, async (tx) => {
+        const snap = await tx.get(ref);
 
     if (snap.exists()) {
       const data = snap.data();
@@ -107,7 +111,7 @@ export async function getOrCreateUser(telegramUser, firebaseUid) {
         lastName: telegramUser.lastName,
         profilePhoto: telegramUser.profilePhoto,
         languageCode: telegramUser.languageCode,
-        updatedAt: serverTimestamp(),
+        updatedAt: new Date(),
       };
       tx.update(ref, freshFields);
       return { id: ref.id, ...data, ...freshFields };
@@ -134,7 +138,12 @@ export async function getOrCreateUser(telegramUser, firebaseUid) {
       updatedAt: serverTimestamp(),
     };
     tx.set(ref, newUser);
-    return { id: ref.id, ...newUser };
+  return {
+    id: ref.id,
+    ...newUser,
+    createdAt: new Date(),
+    updatedAt: new Date()
+};
   });
 }
 
@@ -142,8 +151,10 @@ export function subscribeUser(firebaseUid, callback, onError) {
   return onSnapshot(
     userRef(firebaseUid),
     (snap) => callback(snap.exists() ? { id: snap.id, ...snap.data() } : null),
-    (err) => onError && onError(err)
-  );
+(err) => {
+    console.error("subscribeUser:", err);
+    if (onError) onError(err);
+
 }
 
 export async function getUserOnce(firebaseUid) {
