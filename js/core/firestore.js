@@ -137,11 +137,9 @@ export async function getOrCreateUser(telegramUser, firebaseUid) {
       updatedAt: serverTimestamp(),
     };
     tx.set(ref, newUser);
-  return {
+ return {
     id: ref.id,
     ...newUser,
-    createdAt: new Date(),
-    updatedAt: new Date()
 };
   });
 }
@@ -339,18 +337,24 @@ export async function resolveRedeemRequestTx(requestId, firebaseUid, approve, re
     const reqSnap = await tx.get(requestRef);
     if (!reqSnap.exists()) throw new Error("REQUEST_NOT_FOUND");
 
-    tx.delete(requestRef);
+  const userSnap = await tx.get(userDocRef);
+if (!userSnap.exists()) {
+  throw new Error("USER_NOT_FOUND");
+}
 
-    const userUpdate = {
-      pendingRedeemId: null,
-      updatedAt: serverTimestamp(),
-    };
-    if (!approve && refundAmount) {
-      userUpdate.coinBalance = increment(refundAmount);
-      userUpdate.totalRedeemedCoins = increment(-refundAmount);
-    }
-   tx.update(userDocRef, userUpdate);
+tx.delete(requestRef);
 
+const userUpdate = {
+  pendingRedeemId: null,
+  updatedAt: serverTimestamp(),
+};
+
+if (!approve && refundAmount) {
+  userUpdate.coinBalance = increment(refundAmount);
+  userUpdate.totalRedeemedCoins = increment(-refundAmount);
+}
+
+tx.update(userDocRef, userUpdate);
 return true;
   });
 }
