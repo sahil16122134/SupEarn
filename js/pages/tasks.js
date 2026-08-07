@@ -12,7 +12,8 @@ import {
   creditTaskRewardOnceTx,
   isTaskAlreadyRewarded,
   incrementReferralTaskProgressTx,
-  getTasksOnce
+  getTasksOnce,
+  markCustomTaskCompleted
 } from "../core/firestore.js";
 import { getAdsgramTaskEntries, startAdsgramTask } from "../services/adsgram.js";
 import { fetchAdeaslyTasks, getAdeaslyClickUrl } from "../services/adeasly.js";
@@ -83,6 +84,8 @@ export async function render(container) {
     const telegramUser = appState.get("telegramUser") || {};
     const firebaseUid = appState.get("firebaseUid");
     const telegramId = telegramUser.telegramId;
+     const user = appState.get("user") || {};
+const completedCustomTasks = user.completedCustomTasks || {};
 
     let adsgramCompleted = false;
     if (settings.adsgramBlockId) {
@@ -110,7 +113,7 @@ const adminTasks = customTasks.map(task => ({
     taskUrl: task.taskUrl,
     iconUrl: task.icon,
     estimatedTime: "",
-    status: task.completed ? "completed" : "start",
+    status: completedCustomTasks[task.id] ? "completed" : "start",
     type: "custom"
 }));
 
@@ -257,7 +260,9 @@ allTasks = [
       const settings = appState.get("settings") || {};
 
       await creditTaskRewardOnceTx(firebaseUid, telegramId, task.id, task.reward, task.provider);
-
+if (task.type === "custom") {
+  await markCustomTaskCompleted(firebaseUid, task.id);
+}
       try {
         await incrementReferralTaskProgressTx(telegramId, settings.referralTasksRequired || 4);
       } catch (err) {
