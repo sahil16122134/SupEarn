@@ -61,14 +61,20 @@ export async function bootstrapTelegramAuth() {
     throw new AuthError("NO_TELEGRAM_USER", "Could not read your Telegram profile.");
   }
 
-  let firebaseUser;
-  try {
-    firebaseUser = await waitForFirebaseUser();
+let firebaseUser;
+
+try {
+    firebaseUser = auth.currentUser;
+
     if (!firebaseUser) {
-      const cred = await signInAnonymously(auth);
-      firebaseUser = cred.user;
+        const cred = await signInAnonymously(auth);
+        firebaseUser = cred.user;
+    } else {
+        await waitForFirebaseUser();
     }
-  } catch (err) {
+ 
+}
+} catch (err) {
     throw new AuthError("FIREBASE_AUTH_FAILED", "Could not connect to SupEarn's servers.");
   }
 
@@ -138,3 +144,9 @@ export async function signInAdmin(email, password) {
 export async function signOutAdmin() {
   await signOut(auth);
 }
+  export function getFirebaseUid() {
+    return auth.currentUser?.uid ?? null;
+export function getCurrentFirebaseUser() {
+    return auth.currentUser;
+}
+
