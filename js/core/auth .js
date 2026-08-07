@@ -27,20 +27,21 @@ export class AuthError extends Error {
   }
 }
 
-function waitForFirebaseUser() {
-  return new Promise((resolve, reject) => {
-    const unsubscribe = onAuthStateChanged(
-      auth,
-      (user) => {
-        unsubscribe();
-        resolve(user);
-      },
-      (err) => {
-        unsubscribe();
-        reject(err);
-      }
+let firebaseUser;
+
+try {
+    if (!auth.currentUser) {
+        const cred = await signInAnonymously(auth);
+        firebaseUser = cred.user;
+    } else {
+        firebaseUser = auth.currentUser;
+    }
+} catch (err) {
+    console.error("Anonymous auth failed:", err);
+    throw new AuthError(
+        "FIREBASE_AUTH_FAILED",
+        "Could not connect to SupEarn's servers."
     );
-  });
 }
 
 /**
