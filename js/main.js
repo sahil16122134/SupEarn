@@ -179,9 +179,12 @@ async function boot() {
   setSplashStatus("Signing in…");
   let telegramUser, appUser;
   try {
-    const result = await bootstrapTelegramAuth();
-    telegramUser = result.telegramUser;
-    appUser = result.appUser;
+   const result = await bootstrapTelegramAuth();
+
+telegramUser = result.telegramUser;
+appUser = result.appUser;
+
+appState.set("firebaseUid", result.firebaseUid);
   } catch (err) {
     const message = err instanceof AuthError ? err.message : "Something went wrong while starting up.";
     showSplashError(message, () => window.location.reload());
