@@ -59,7 +59,11 @@ export async function navigateTo(pageName, params = {}, options = {}) {
   isTransitioning = true;
 
   if (options.isTab) {
-    historyStack = [{ name: pageName, params }];
+    historyStack[historyStack.length - 1] = {
+    name: pageName,
+    params,
+    fromProfile: true,
+};
     showBackButton(null);
     updateNavActiveState(pageName);
   } else if (options.replace && historyStack.length) {
