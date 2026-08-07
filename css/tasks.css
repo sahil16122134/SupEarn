@@ -1,0 +1,185 @@
+/* ==========================================================================
+   SupEarn — pages/tasks.css
+   Task list cards, expandable descriptions, provider/status badges.
+   ========================================================================== */
+
+.tasks-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.tasks-filter-row {
+  display: flex;
+  gap: var(--space-xs);
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+
+.tasks-filter-row::-webkit-scrollbar {
+  display: none;
+}
+
+.filter-chip {
+  flex-shrink: 0;
+  padding: 8px 16px;
+  border-radius: var(--radius-pill);
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all var(--dur-fast) var(--ease-out);
+}
+
+.filter-chip.active {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: var(--text-on-accent);
+  border-color: transparent;
+}
+
+/* ---- Task card ---- */
+.task-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.task-card {
+  padding: var(--space-md);
+}
+
+.task-card-main {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  cursor: pointer;
+}
+
+.task-icon {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  background: var(--glass-surface-strong);
+  border: 1px solid var(--glass-border);
+}
+
+.task-icon-fallback {
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(59, 130, 246, 0.18));
+  border: 1px solid var(--glass-border);
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--accent-cyan);
+}
+
+.task-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-title {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.task-meta-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.task-reward {
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--accent-gold);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.task-time {
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.task-provider-tag {
+  font-size: 10px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.task-action-btn {
+  flex-shrink: 0;
+  width: auto;
+  padding: 9px 18px;
+  font-size: var(--fs-xs);
+  border-radius: var(--radius-sm);
+}
+
+.task-action-btn.state-start,
+.task-action-btn.state-continue {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: var(--text-on-accent);
+}
+
+.task-action-btn.state-claim {
+  background: linear-gradient(135deg, var(--success), #10b981);
+  color: #05231a;
+}
+
+.task-action-btn.state-completed,
+.task-action-btn.state-disabled {
+  background: var(--glass-surface-strong);
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+/* ---- Expandable description ---- */
+.task-description {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height var(--dur-base) var(--ease-in-out), opacity var(--dur-base) var(--ease-out), margin-top var(--dur-base) var(--ease-out);
+}
+
+.task-card.is-expanded .task-description {
+  max-height: 220px;
+  opacity: 1;
+  margin-top: var(--space-md);
+}
+
+.task-description-text {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding-top: var(--space-sm);
+  border-top: 1px solid var(--glass-border);
+}
+
+.task-card .expandable-chevron {
+  color: var(--text-muted);
+}
+
+/* ---- Tasks skeleton ---- */
+.task-skeleton {
+  height: 78px;
+  border-radius: var(--radius-lg);
+}

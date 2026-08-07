@@ -1,0 +1,339 @@
+/* ==========================================================================
+   SupEarn — glass.css
+   Core glassmorphism component library: surfaces, cards, buttons, inputs,
+   badges, progress bars. Consumed by every page.
+   ========================================================================== */
+
+/* ---- Base glass surface ---- */
+.glass-surface {
+  background: var(--glass-surface);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+}
+
+.glass-surface-strong {
+  background: var(--glass-surface-strong);
+  backdrop-filter: blur(var(--glass-blur-strong));
+  -webkit-backdrop-filter: blur(var(--glass-blur-strong));
+  border: 1px solid var(--glass-border-strong);
+}
+
+/* ---- Glass card ---- */
+.glass-card {
+  position: relative;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.03));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: var(--space-lg);
+  transition: transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-out),
+    border-color var(--dur-base) var(--ease-out);
+  will-change: transform;
+}
+
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0) 40%);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.glass-card:active {
+  transform: scale(0.98);
+}
+
+.glass-card.interactive {
+  cursor: pointer;
+}
+
+.glass-card.interactive:hover {
+  border-color: var(--glass-border-strong);
+  box-shadow: var(--shadow-lift), var(--shadow-glow-cyan);
+  transform: translateY(-2px);
+}
+
+.glass-card.compact {
+  padding: var(--space-md);
+  border-radius: var(--radius-md);
+}
+
+/* ---- Glass buttons ---- */
+.btn-glass {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  width: 100%;
+  padding: 14px var(--space-lg);
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--fs-md);
+  overflow: hidden;
+  isolation: isolate;
+  transition: transform var(--dur-fast) var(--ease-out),
+    box-shadow var(--dur-fast) var(--ease-out),
+    opacity var(--dur-fast) var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-glass:active {
+  transform: scale(0.97);
+}
+
+.btn-glass:disabled,
+.btn-glass.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  color: var(--text-on-accent);
+  box-shadow: 0 8px 24px rgba(34, 211, 238, 0.28);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 10px 30px rgba(34, 211, 238, 0.4);
+}
+
+.btn-secondary {
+  background: var(--glass-surface-strong);
+  border: 1px solid var(--glass-border-strong);
+  color: var(--text-primary);
+}
+
+.btn-secondary:hover {
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.btn-ghost {
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  color: var(--text-secondary);
+}
+
+.btn-danger {
+  background: linear-gradient(135deg, #f87171, #ef4444);
+  color: #1a0505;
+}
+
+.btn-sm {
+  width: auto;
+  padding: 8px 16px;
+  font-size: var(--fs-sm);
+  border-radius: var(--radius-sm);
+}
+
+.btn-icon {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  background: var(--glass-surface-strong);
+  border: 1px solid var(--glass-border);
+  flex-shrink: 0;
+}
+
+/* Ripple element injected by ui.js on pointerdown */
+.btn-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  pointer-events: none;
+  animation: ripple-expand 550ms var(--ease-out) forwards;
+}
+
+/* ---- Glass inputs ---- */
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.field label {
+  font-size: var(--fs-sm);
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.field input,
+.field select {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-sm);
+  padding: 13px var(--space-md);
+  color: var(--text-primary);
+  font-size: var(--fs-md);
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+
+.field input::placeholder {
+  color: var(--text-muted);
+}
+
+.field input:focus,
+.field select:focus {
+  border-color: var(--accent-cyan);
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+
+.field.has-error input {
+  border-color: var(--error);
+}
+
+.field-error {
+  font-size: var(--fs-xs);
+  color: var(--error);
+  min-height: 14px;
+}
+
+/* ---- Badges ---- */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.badge-success {
+  background: var(--success-dim);
+  color: var(--success);
+}
+
+.badge-warning {
+  background: var(--warning-dim);
+  color: var(--warning);
+}
+
+.badge-error {
+  background: var(--error-dim);
+  color: var(--error);
+}
+
+.badge-info {
+  background: var(--info-dim);
+  color: var(--info);
+}
+
+.badge-neutral {
+  background: var(--glass-surface-strong);
+  color: var(--text-secondary);
+}
+
+/* ---- Progress bar ---- */
+.progress-track {
+  position: relative;
+  width: 100%;
+  height: 10px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(90deg, var(--accent-blue), var(--accent-cyan));
+  transition: width var(--dur-slow) var(--ease-out);
+  box-shadow: 0 0 12px rgba(34, 211, 238, 0.5);
+}
+
+/* ---- Divider ---- */
+.glass-divider {
+  height: 1px;
+  width: 100%;
+  background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+  margin: var(--space-md) 0;
+}
+
+/* ---- Dropdown / expandable section ---- */
+.expandable {
+  overflow: hidden;
+  transition: max-height var(--dur-base) var(--ease-in-out);
+}
+
+.expandable-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  cursor: pointer;
+}
+
+.expandable-chevron {
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.expandable.is-open .expandable-chevron,
+.expandable-toggle[aria-expanded="true"] .expandable-chevron {
+  transform: rotate(180deg);
+}
+
+/* ---- Toggle switch (settings-style) ---- */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 26px;
+  flex-shrink: 0;
+}
+
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.switch-track {
+  position: absolute;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-pill);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+
+.switch-track::before {
+  content: "";
+  position: absolute;
+  height: 20px;
+  width: 20px;
+  left: 3px;
+  top: 3px;
+  background: #fff;
+  border-radius: 50%;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+
+.switch input:checked + .switch-track {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+}
+
+.switch input:checked + .switch-track::before {
+  transform: translateX(18px);
+}
+
+/* ---- Avatar ---- */
+.avatar {
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--glass-border-strong);
+}

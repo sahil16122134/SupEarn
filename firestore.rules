@@ -1,0 +1,109 @@
+rules_version = '2';
+
+// ============================================================================
+// SupEarn — Firestore Security Rules
+// Deploy via: firebase deploy --only firestore:rules
+//
+// Model:
+//   - Normal users authenticate anonymously; their Telegram ID anchors a
+//     users/{telegramId} document to the Firebase UID that first created it
+//     (the `firebaseUid` field), so only that same browser/device session
+//     can ever write to it again.
+//   - Admins authenticate via email/password and are provisioned with a
+//     users/{their-own-uid} style document carrying role:"admin" (create
+//     this manually in the Firebase console for each admin account).
+//   - redeemRequests and taskCompletions are created by the owning user's
+//     own client-side transaction logic; deletion (approve/reject) and
+//     settings writes are restricted to admins only.
+// ============================================================================
+
+match /databases/{database}/documents {
+
+  // ------------------------------------------------------------------
+  // USERS
+  // ------------------------------------------------------------------
+  match /users/{telegramId} {
+    allow read: if request.auth != null && (
+      resource.data.firebaseUid == request.auth.uid ||
+      resource.data.role == "admin"
+    );
+
+    // First-ever write for this Telegram ID: only allowed if the caller
+    // is claiming it as their own (firebaseUid must equal their uid) and
+    // they aren't trying to grant themselves admin or seed a fake wallet.
+    allow create: if request.auth != null
+      && request.resource.data.firebaseUid == request.auth.uid
+      && request.resource.data.role == "user"
+      && request.resource.data.coinBalance == 0
+      && request.resource.data.totalEarnedCoins == 0
+      && request.resource.data.totalRedeemedCoins == 0;
+
+    // Subsequent writes: only the anchored owner may write, and may never
+    // change firebaseUid, role, or telegramId once set.
+    allow update: if request.auth != null
+      && resource.data.firebaseUid == request.auth.uid
+      && request.resource.data.firebaseUid == resource.data.firebaseUid
+      && request.resource.data.role == resource.data.role
+      && request.resource.data.telegramId == resource.data.telegramId;
+
+    allow delete: if false;
+  }
+
+  // ------------------------------------------------------------------
+  // SETTINGS — publicly readable (needed at startup before any write),
+  // writable only by admins.
+  // ------------------------------------------------------------------
+  match /settings/{docId} {
+    allow read: if true;
+    allow write: if request.auth != null &&
+      exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+  }
+
+  // ------------------------------------------------------------------
+  // REDEEM REQUESTS — any signed-in user may create a pending request
+  // for themselves; only admins may delete (approve/reject); nobody can
+  // directly edit a request after creation.
+  // ------------------------------------------------------------------
+  match /redeemRequests/{requestId} {
+    allow read: if request.auth != null;
+
+    allow create: if request.auth != null
+      && request.resource.data.status == "pending"
+      && request.resource.data.amount is int
+      && request.resource.data.amount > 0;
+
+    allow update: if false;
+
+    allow delete: if request.auth != null &&
+      exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+      get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+  }
+
+  // ------------------------------------------------------------------
+  // TASK COMPLETIONS — one document per (user, task); write-once, so a
+  // task can never be rewarded twice for the same user.
+  // ------------------------------------------------------------------
+  match /taskCompletions/{completionId} {
+    allow read: if request.auth != null;
+    allow create: if request.auth != null
+      && request.resource.data.amount is int
+      && request.resource.data.amount > 0;
+    allow update, delete: if false;
+  }
+
+  // ------------------------------------------------------------------
+  // REFERRALS — created once per referred user; only tasksCompleted and
+  // bonusPaid may ever change after creation.
+  // ------------------------------------------------------------------
+  match /referrals/{telegramId} {
+    allow read: if request.auth != null;
+    allow create: if request.auth != null
+      && request.resource.data.tasksCompleted == 0
+      && request.resource.data.bonusPaid == false;
+    allow update: if request.auth != null
+      && request.resource.data.referrerId == resource.data.referrerId
+      && request.resource.data.telegramId == resource.data.telegramId;
+    allow delete: if false;
+  }
+}
