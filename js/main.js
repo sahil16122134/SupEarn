@@ -199,10 +199,17 @@ async function boot() {
     return;
   }
 
- subscribeUser(
-    appUser.firebaseUid,)
+subscribeUser(
+  appUser.firebaseUid,
+  (user) => {
+    appState.set("appUser", user);
+  },
+  (err) => {
+    console.error(err);
+  }
+);
 
-  setSplashStatus("Loading home…");
+setSplashStatus("Loading home…");
   updateHeaderFromTelegramUser(telegramUser);
   wireHeaderProfileLink();
   wireAdminGesture();
