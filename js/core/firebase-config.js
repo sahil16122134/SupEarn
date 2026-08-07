@@ -23,10 +23,14 @@ const firebaseConfig = {
   appId: "1:527480346513:web:eabd6df3e934b475652c30",
   measurementId: "G-7RQ8ESSLMC"
 };
-
 const app = initializeApp(firebaseConfig);
 
+export { app };
+
 export const auth = getAuth(app);
+
+// Keep the anonymous session across app launches.
+auth.useDeviceLanguage();
 
 // Persistent local cache lets the wallet/tasks render instantly from cache
 // on repeat opens while Firestore syncs fresh data in the background.
