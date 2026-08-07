@@ -15,12 +15,13 @@ import { initializeFirestore, persistentLocalCache, persistentSingleTabManager }
  * entirely by Firestore Security Rules, not by keeping this object secret.
  */
 const firebaseConfig = {
-  apiKey: "YOUR_FIREBASE_API_KEY",
-  authDomain: "supearn-app.firebaseapp.com",
-  projectId: "supearn-app",
-  storageBucket: "supearn-app.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_FIREBASE_APP_ID",
+  apiKey: "AIzaSyBVcGaNWuKPwep8tcdC3M0f3ndFRHpoE0E",
+  authDomain: "supearn-a4ce0.firebaseapp.com",
+  projectId: "supearn-a4ce0",
+  storageBucket: "supearn-a4ce0.firebasestorage.app",
+  messagingSenderId: "527480346513",
+  appId: "1:527480346513:web:eabd6df3e934b475652c30",
+  measurementId: "G-7RQ8ESSLMC"
 };
 
 const app = initializeApp(firebaseConfig);
