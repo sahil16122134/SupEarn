@@ -191,6 +191,23 @@ allTasks = [
   }
 
   async function handleTaskAction(task, buttonEl) {
+
+  if (isBusy) return;
+  if (!requireOnline()) return;
+
+  // Custom admin task
+  if (task.type === "custom") {
+    showCustomTaskPopup(task);
+    return;
+  }
+
+  if (task.provider === "AdsGram") {
+    await handleAdsgramAction(task, buttonEl);
+  } else if (task.provider === "Adeasly") {
+    await handleAdeaslyAction(task, buttonEl);
+  }
+
+  }
     if (isBusy) return;
     if (!requireOnline()) return;
 
@@ -295,7 +312,83 @@ allTasks = [
       },
     });
   }
+function showCustomTaskPopup(task) {
 
+  openModal({
+
+    title: task.title,
+
+    bodyHtml: `
+      <div class="custom-task-popup">
+
+        <p>${escapeHtml(task.description || "")}</p>
+
+        ${
+          (task.steps || []).length
+          ? `
+          <h4>Steps</h4>
+
+          <ol>
+            ${(task.steps || [])
+  .map(step => `<li>${escapeHtml(step)}</li>`)
+  .join("")}
+          </ol>
+          `
+          : ""
+        }
+
+        ${
+          task.notes
+          ? `
+          <div class="glass-card">
+            <strong>Note</strong><br>
+            ${escapeHtml(task.notes)}
+          </div>
+          `
+          : ""
+        }
+
+        ${
+          task.referralCode
+          ? `
+          <div class="glass-card">
+            <strong>Referral Code</strong><br>
+            <span class="mono">${escapeHtml(task.referralCode)}</span>
+          </div>
+          `
+          : ""
+        }
+
+        <div style="margin-top:20px">
+
+          <button
+            id="customTaskStart"
+            class="btn-glass btn-primary">
+
+            Start Task (+${task.reward})
+
+          </button>
+
+        </div>
+
+      </div>
+    `,
+
+    onMount(card){
+
+      card
+      .querySelector("#customTaskStart")
+      .onclick=()=>{
+
+        openExternalLink(task.taskUrl);
+
+      };
+
+    }
+
+  });
+
+}
   const unsubOnline = subscribeOnline((online) => {
     if (online) loadTasks();
   });
