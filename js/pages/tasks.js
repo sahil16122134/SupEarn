@@ -46,6 +46,7 @@ export async function render(container) {
     </div>
     <div class="tasks-filter-row" id="tasks-filter-row">
       <button type="button" class="filter-chip active" data-filter="all">All</button>
+      <button type="button" class="filter-chip" data-filter="SupEarn">SupEarn</button>
       <button type="button" class="filter-chip" data-filter="AdsGram">AdsGram</button>
       <button type="button" class="filter-chip" data-filter="Adeasly">Adeasly</button>
     </div>
@@ -370,7 +371,11 @@ function showCustomTaskPopup(task) {
       .querySelector("#customTaskStart")
       .onclick=()=>{
 
-        openExternalLink(task.taskUrl);
+        if (task.taskUrl) {
+    openExternalLink(task.taskUrl);
+} else {
+    toastError("Task URL not available.");
+        };
 
       };
 
