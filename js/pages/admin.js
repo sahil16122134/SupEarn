@@ -588,24 +588,41 @@ tasks.forEach(task => {
   list.querySelector(`[data-delete="${task.id}"]`)
       .onclick = () => deleteTaskHandler(task);
 
-  list.querySelector(`[data-active="${task.id}"]`)
+  list.querySelector(`[data-toggle-active="${task.id}"]`)
       .onclick = async () => {
+
           await updateTask(task.id, {
               active: !task.active
           });
+
+          toastSuccess(
+              task.active
+                  ? "Task deactivated"
+                  : "Task activated"
+          );
+
           renderTasksTab();
+
       };
 
-  list.querySelector(`[data-hide="${task.id}"]`)
+  list.querySelector(`[data-toggle-hidden="${task.id}"]`)
       .onclick = async () => {
+
           await updateTask(task.id, {
               hidden: !task.hidden
           });
+
+          toastSuccess(
+              task.hidden
+                  ? "Task visible"
+                  : "Task hidden"
+          );
+
           renderTasksTab();
+
       };
 
 });
-
         list.querySelector(`[data-active="${task.id}"]`).onclick=async()=>{
 
             await updateTask(task.id,{
