@@ -8,7 +8,12 @@
    ========================================================================== */
 
 import { appState } from "../core/state.js";
-import { creditTaskRewardOnceTx, isTaskAlreadyRewarded, incrementReferralTaskProgressTx } from "../core/firestore.js";
+import {
+  creditTaskRewardOnceTx,
+  isTaskAlreadyRewarded,
+  incrementReferralTaskProgressTx,
+  getTasksOnce
+} from "../core/firestore.js";
 import { getAdsgramTaskEntries, startAdsgramTask } from "../services/adsgram.js";
 import { fetchAdeaslyTasks, getAdeaslyClickUrl } from "../services/adeasly.js";
 import { isOnline, requireOnline, subscribeOnline } from "../services/network.js";
@@ -87,8 +92,32 @@ export async function render(container) {
       }
     }
     const adsgramTasks = getAdsgramTaskEntries(settings, adsgramCompleted);
-    const adeaslyTasks = await fetchAdeaslyTasks(settings.adeaslyApiKey, telegramId);
+const adeaslyTasks = await fetchAdeaslyTasks(settings.adeaslyApiKey, telegramId);
 
+// Admin tasks
+const customTasks = await getTasksOnce();
+
+const adminTasks = customTasks.map(task => ({
+    id: task.id,
+    provider: "SupEarn",
+    title: task.name,
+    reward: task.reward,
+    description: task.description,
+    steps: task.steps || [],
+    notes: task.notes || "",
+    referralCode: task.referralCode || "",
+    taskUrl: task.taskUrl,
+    iconUrl: task.icon,
+    estimatedTime: "",
+    status: "start",
+    type: "custom"
+}));
+
+allTasks = [
+    ...adminTasks,
+    ...adsgramTasks,
+    ...adeaslyTasks
+];
     allTasks = [...adsgramTasks, ...adeaslyTasks];
     renderList();
   }
