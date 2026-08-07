@@ -99,8 +99,6 @@ const completedCustomTasks = user.completedCustomTasks || {};
 const adeaslyTasks = await fetchAdeaslyTasks(settings.adeaslyApiKey, telegramId);
 
 // Admin tasks
-const customTasks = await getTasksOnce();
-
 const adminTasks = customTasks.map(task => ({
     id: task.id,
     provider: "SupEarn",
@@ -113,7 +111,9 @@ const adminTasks = customTasks.map(task => ({
     taskUrl: task.taskUrl,
     iconUrl: task.icon,
     estimatedTime: "",
-    status: completedCustomTasks[task.id] ? "completed" : "start",
+    status: completedCustomTasks[task.id]
+        ? "completed"
+        : "start",
     type: "custom"
 }));
 
