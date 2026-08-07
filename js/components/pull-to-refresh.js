@@ -7,7 +7,7 @@
 
 const PULL_THRESHOLD = 72;
 const MAX_PULL = 120;
-
+import { getCurrentPage } from "../core/router.js";
 /**
  * Attaches pull-to-refresh to `scrollEl`. `onRefresh` should return a
  * Promise (or be async); the indicator spins until it resolves.
@@ -43,7 +43,12 @@ export function attachPullToRefresh(scrollEl, onRefresh) {
 
   function onTouchStart(e) {
     if (refreshing) return;
+
+    // Allow pull-to-refresh only on Home
+    if (getCurrentPage() !== "home") return;
+
     if (scrollEl.scrollTop > 0) return;
+
     startY = e.touches[0].clientY;
     pulling = true;
     dragging = false;
@@ -52,7 +57,9 @@ export function attachPullToRefresh(scrollEl, onRefresh) {
   function onTouchMove(e) {
     if (!pulling || refreshing) return;
     const deltaY = e.touches[0].clientY - startY;
-    if (deltaY <= 0) return;
+
+// Ignore tiny pulls while scrolling
+if (deltaY < 25) return;
 
     if (scrollEl.scrollTop > 0) {
       pulling = false;
