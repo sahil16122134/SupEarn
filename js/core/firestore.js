@@ -530,6 +530,13 @@ export async function getTasksOnce() {
     ...doc.data(),
   }));
 }
+export async function markCustomTaskCompleted(firebaseUid, taskId) {
+  const userRef = doc(db, "users", firebaseUid);
+
+  await updateDoc(userRef, {
+    [`completedCustomTasks.${taskId}`]: true,
+  });
+}
 /**
  * Create a new task.
  */
