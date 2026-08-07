@@ -530,3 +530,56 @@ export async function getTasksOnce() {
     ...doc.data(),
   }));
 }
+/**
+ * Create a new task.
+ */
+export async function createTask(taskData) {
+  const ref = doc(tasksCol);
+
+  await setDoc(ref, {
+    name: taskData.name,
+    reward: Number(taskData.reward),
+    description: taskData.description,
+    steps: taskData.steps || [],
+    referralCode: taskData.referralCode || "",
+    notes: taskData.notes || "",
+    taskUrl: taskData.taskUrl,
+    icon: taskData.icon || "",
+    active: true,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return ref.id;
+}
+
+/**
+ * Update an existing task.
+ */
+export async function updateTask(taskId, updates) {
+  await updateDoc(doc(tasksCol, taskId), {
+    ...updates,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+/**
+ * Delete a task.
+ */
+export async function deleteTask(taskId) {
+  await deleteDoc(doc(tasksCol, taskId));
+}
+
+/**
+ * Get one task.
+ */
+export async function getTask(taskId) {
+  const snap = await getDoc(doc(tasksCol, taskId));
+
+  if (!snap.exists()) return null;
+
+  return {
+    id: snap.id,
+    ...snap.data(),
+  };
+}
