@@ -15,8 +15,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 import { auth } from "./firebase-config.js";
 import { getOrCreateUser, recordReferralIfNew, isUserAdmin } from "./firestore.js";
-import { getTelegramUser, getReferrerIdFromStartParam } from "./telegram.js";
-
+import {
+  getTelegramUser,
+  getReferrerIdFromStartParam,
+  isInsideTelegram,
+} from "./telegram.js";
 /** Thrown for any failure in the auth/bootstrap chain, carrying a stable
  *  `code` the UI layer can map to a friendly message. */
 export class AuthError extends Error {
