@@ -211,17 +211,17 @@ appState.set("user", appUser);
 
   setSplashStatus("Loading your wallet…");
 subscribeUser(
-firebaseUid,
-(liveUser) => {
-  if (liveUser) {
-    appState.set("appUser", liveUser);
-    appState.set("user", liveUser);
-  }
-}
-    (err) => {
-      console.error("[main] user subscription error:", err);
+  firebaseUid,
+  (liveUser) => {
+    if (liveUser) {
+      appState.set("appUser", liveUser);
+      appState.set("user", liveUser);
     }
-  );
+  },
+  (err) => {
+    console.error("[main] user subscription error:", err);
+  }
+);
 
   setSplashStatus("Loading home…");
   updateHeaderFromTelegramUser(telegramUser);
