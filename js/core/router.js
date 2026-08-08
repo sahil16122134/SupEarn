@@ -51,42 +51,55 @@ function updateNavActiveState(pageName) {
  */
 export async function navigateTo(pageName, params = {}, options = {}) {
   const pageModule = registry[pageName];
+
   if (!pageModule) {
     console.error(`[router] No page registered for "${pageName}"`);
     return;
   }
+
   if (isTransitioning) return;
   isTransitioning = true;
 
   if (options.isTab) {
-  const entry = {
-    name: pageName,
-    params,
-  };
+    const entry = {
+      name: pageName,
+      params,
+    };
 
-  if (historyStack.length === 0) {
-    historyStack.push(entry);
-  } else {
-    historyStack[historyStack.length - 1] = entry;
-  }
+    if (historyStack.length === 0) {
+      historyStack.push(entry);
+    } else {
+      historyStack[historyStack.length - 1] = entry;
+    }
 
-  showBackButton(null);
-  updateNavActiveState(pageName);
+    showBackButton(null);
+    updateNavActiveState(pageName);
+
   } else if (options.replace && historyStack.length) {
-    historyStack[historyStack.length - 1] = { name: pageName, params };
+    historyStack[historyStack.length - 1] = {
+      name: pageName,
+      params,
+    };
+
     showBackButton(historyStack.length > 1 ? goBack : null);
+
   } else {
-    historyStack.push({ name: pageName, params });
+    historyStack.push({
+      name: pageName,
+      params,
+    });
+
     showBackButton(goBack);
-    updateNavActiveState(""); // no tab highlighted while on a sub-page
+    updateNavActiveState("");
   }
 
   appState.set("currentPage", pageName);
-try {
+
+  try {
     await renderCurrentEntry();
-} finally {
+  } finally {
     isTransitioning = false;
-}
+  }
 }
 
 /**
