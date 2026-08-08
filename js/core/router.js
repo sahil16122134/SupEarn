@@ -72,7 +72,6 @@ export async function navigateTo(pageName, params = {}, options = {}) {
 
   showBackButton(null);
   updateNavActiveState(pageName);
-  }
   } else if (options.replace && historyStack.length) {
     historyStack[historyStack.length - 1] = { name: pageName, params };
     showBackButton(historyStack.length > 1 ? goBack : null);
