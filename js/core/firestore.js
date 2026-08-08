@@ -502,7 +502,11 @@ const tasksCol = collection(db, "tasks");
  * Subscribe to all active tasks.
  */
 export function subscribeTasks(callback, onError) {
-  const q = query(tasksCol, where("active", "==", true));
+  const q = query(
+  tasksCol,
+  where("active", "==", true),
+  where("hidden", "==", false)
+);
 
   return onSnapshot(
     q,
@@ -521,7 +525,11 @@ export function subscribeTasks(callback, onError) {
  * Get all tasks once.
  */
 export async function getTasksOnce() {
-  const q = query(tasksCol, where("active", "==", true));
+  const q = query(
+  tasksCol,
+  where("active", "==", true),
+  where("hidden", "==", false)
+);
 
   const snap = await getDocs(q);
 
@@ -552,7 +560,8 @@ export async function createTask(taskData) {
     notes: taskData.notes || "",
     taskUrl: taskData.taskUrl,
     icon: taskData.icon || "",
-    active: true,
+    active: taskData.active ?? true,
+hidden: taskData.hidden ?? false,
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   });
