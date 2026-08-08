@@ -666,18 +666,7 @@ ${task?.hidden ? "checked" : ""}>
 Hide Task
 </label>
 </div>
-      <div class="field">
-        <label>Status</label>
-        <select id="taskStatus">
-            <option value="true" ${task?.active !== false ? "selected" : ""}>
-                Active
-            </option>
-
-            <option value="false" ${task?.active === false ? "selected" : ""}>
-                Hidden
-            </option>
-        </select>
-      </div>
+      
 
       <button
           id="saveTaskBtn"
@@ -714,8 +703,7 @@ async function saveTask(existingTask = null) {
     const referralCode = document.getElementById("taskReferral").value.trim();
     const notes = document.getElementById("taskNotes").value.trim();
 
-    const active =
-        document.getElementById("taskStatus").value === "true";
+    
 
     const steps = document
         .getElementById("taskSteps")
@@ -771,7 +759,7 @@ const data = {
 
         document.querySelector(".modal-overlay")?.remove();
 
-        renderTasksTab();
+       await renderTasksTab();
 
     } catch (err) {
 
