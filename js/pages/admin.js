@@ -338,32 +338,7 @@ container
 });
 
 
-function renderTab() {
 
-    if (unsubRequests) {
-
-        unsubRequests();
-        unsubRequests = null;
-
-    }
-
-    switch (currentTab) {
-
-        case "requests":
-            renderRequestsTab();
-            break;
-
-        case "tasks":
-            renderTasksTab();
-            break;
-
-        case "settings":
-            renderSettingsTab();
-            break;
-
-    }
-
-}
   function renderRequestsTab() {
     tabContent.innerHTML = cardListSkeleton(3, "120px");
 
