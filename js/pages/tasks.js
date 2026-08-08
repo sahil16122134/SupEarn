@@ -56,7 +56,9 @@ export async function render(container) {
 
   const listEl = container.querySelector("#task-list");
   const filterRow = container.querySelector("#tasks-filter-row");
-
+  const unsubOnline = subscribeOnline((online) => {
+  if (online) loadTasks();
+});
   filterRow.addEventListener("click", (e) => {
     const chip = e.target.closest(".filter-chip");
     if (!chip) return;
@@ -101,8 +103,14 @@ const adeaslyTasks = await fetchAdeaslyTasks(settings.adeaslyApiKey, telegramId)
 const completedCustomTasks =
     appState.get("appUser")?.completedCustomTasks || {};
 
-const customTasks = await getTasksOnce();
+let customTasks = [];
 
+try {
+  customTasks = await getTasksOnce();
+} catch (err) {
+  console.error("[tasks] Failed to load SupEarn custom tasks:", err);
+  customTasks = [];
+}
 // Admin tasks
 const adminTasks = customTasks.map(task => ({
     id: task.id,
@@ -334,8 +342,8 @@ function showCustomTaskPopup(task) {
 
           <ol>
             ${(task.steps || [])
-  .map(step => `<li>${escapeHtml(step)}</li>`)
-  .join("")}
+              .map(step => `<li>${escapeHtml(step)}</li>`)
+              .join("")}
           </ol>
           `
           : ""
@@ -366,66 +374,60 @@ function showCustomTaskPopup(task) {
         <div style="margin-top:20px">
 
           <button
-  id="customTaskStart"
-  class="btn-glass btn-primary"
-  ${task.status === "completed" ? "disabled" : ""}>
+            id="customTaskStart"
+            class="btn-glass btn-primary"
+            ${task.status === "completed" ? "disabled" : ""}>
 
-  ${
-    task.status === "claim"
-      ? "Claim Reward"
-      : task.status === "completed"
-      ? "Completed"
-      : `Start Task (+${task.reward})`
-  }
+            ${
+              task.status === "claim"
+                ? "Claim Reward"
+                : task.status === "completed"
+                ? "Completed"
+                : `Start Task (+${task.reward})`
+            }
 
-</button>
+          </button>
 
         </div>
 
       </div>
     `,
 
-    onMount(card){
+    onMount(card) {
 
       card.querySelector("#customTaskStart").onclick = async () => {
 
-    if (task.status === "completed") return;
+        if (task.status === "completed") return;
 
-    if (task.status === "claim") {
-        await creditTaskReward(
+        if (task.status === "claim") {
+          await creditTaskReward(
             task,
             card.querySelector("#customTaskStart"),
             "Claim Reward"
-        );
-        return;
-    }
+          );
+          return;
+        }
 
-    if (task.taskUrl) {
-    openExternalLink(task.taskUrl);
+        if (task.taskUrl) {
+          openExternalLink(task.taskUrl);
 
-    task.status = "claim";
+          task.status = "claim";
 
-    // Close popup
-    document.querySelector(".modal-overlay")?.remove();
+          document.querySelector(".modal-overlay")?.remove();
 
-} else {
-    toastError("Task URL not available.");
-    }
-
-};
+        } else {
+          toastError("Task URL not available.");
+        }
+      };
     }
   });
-  const unsubOnline = subscribeOnline((online) => {
-    if (online) loadTasks();
-  });
-}
-  await loadTasks();
+}   // ← closes showCustomTaskPopup
+     await loadTasks();
 
   return () => {
     unsubOnline();
   };
-}
-
+}   // ← closes render()
 function escapeHtml(str) {
   const div = document.createElement("div");
   div.textContent = str == null ? "" : str;
