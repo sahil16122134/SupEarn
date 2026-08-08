@@ -489,17 +489,6 @@ ${task.hidden ? "Hidden" : "Visible"}
 </span>
 
 </div>
-<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
-
-<span class="badge ${task.active ? "badge-success":"badge-danger"}">
-${task.active ? "Active":"Inactive"}
-</span>
-
-<span class="badge ${task.hidden ? "badge-warning":"badge-success"}">
-${task.hidden ? "Hidden":"Visible"}
-</span>
-
-</div>
 
 </div>
 
@@ -547,8 +536,9 @@ tasks.forEach(task => {
         .onclick = () => deleteTaskHandler(task);
 
     list.querySelector(`[data-toggle-active="${task.id}"]`)
-        .onclick = async () => {
+    .onclick = async () => {
 
+        try {
             await updateTask(task.id, {
                 active: !task.active
             });
@@ -559,8 +549,14 @@ tasks.forEach(task => {
                     : "Task enabled"
             );
 
-            renderTasksTab();
-        };
+            await renderTasksTab();
+
+        } catch (err) {
+            console.error("[admin] Failed to update task:", err);
+            toastError("Couldn't update the task. Please try again.");
+        }
+
+    };
 
     list.querySelector(`[data-toggle-hidden="${task.id}"]`)
         .onclick = async () => {
@@ -579,24 +575,29 @@ tasks.forEach(task => {
         };
 
 });
-   async function deleteTaskHandler(task){
+   async function deleteTaskHandler(task) {
 
     const ok = await confirmModal({
-        title:"Delete Task",
-        message:`Delete "${task.name}" ?`,
-        confirmLabel:"Delete",
-        danger:true
+        title: "Delete Task",
+        message: `Delete "${task.name}" ?`,
+        confirmLabel: "Delete",
+        danger: true
     });
 
-    if(!ok) return;
+    if (!ok) return;
 
-    await deleteTask(task.id);
+    try {
+        await deleteTask(task.id);
 
-    toastSuccess("Task deleted");
+        toastSuccess("Task deleted");
 
-    renderTasksTab();
+        await renderTasksTab();
 
-}
+    } catch (err) {
+        console.error("[admin] Failed to delete task:", err);
+        toastError("Couldn't delete the task. Please try again.");
+    }
+   }
 async function openTaskModal(task = null) {
 
   const isEdit = !!task;
