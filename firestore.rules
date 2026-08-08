@@ -53,27 +53,20 @@ service cloud.firestore {
       // Identity and role cannot be changed.
       // Wallet cannot become negative.
       allow update: if isSignedIn()
-        && (
-          (
-            request.auth.uid == firebaseUid
-            && resource.data.firebaseUid == request.auth.uid
-            && request.resource.data.firebaseUid
-                == resource.data.firebaseUid
-            && request.resource.data.role
-                == resource.data.role
-            && request.resource.data.telegramId
-                == resource.data.telegramId
-            && request.resource.data.createdAt
-                == resource.data.createdAt
-            && request.resource.data.coinBalance >= 0
-            && request.resource.data.totalEarnedCoins
-                >= resource.data.totalEarnedCoins
-            && request.resource.data.totalRedeemedCoins
-                >= resource.data.totalRedeemedCoins
-          )
-          ||
-          isAdmin()
-        );
+  && (
+    (
+      request.auth.uid == firebaseUid
+      && resource.data.firebaseUid == request.auth.uid
+      && request.resource.data.firebaseUid == resource.data.firebaseUid
+      && request.resource.data.role == resource.data.role
+      && request.resource.data.telegramId == resource.data.telegramId
+      && request.resource.data.coinBalance >= 0
+      && request.resource.data.totalEarnedCoins >= resource.data.totalEarnedCoins
+      && request.resource.data.totalRedeemedCoins >= resource.data.totalRedeemedCoins
+    )
+    ||
+    isAdmin()
+  );
 
 
       allow delete: if false;
