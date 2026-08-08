@@ -213,9 +213,11 @@ appState.set("user", appUser);
 subscribeUser(
 firebaseUid,
 (liveUser) => {
-      if (liveUser) appState.set("appUser", liveUser);
-appState.set("user", appUser);
-    },
+  if (liveUser) {
+    appState.set("appUser", liveUser);
+    appState.set("user", liveUser);
+  }
+}
     (err) => {
       console.error("[main] user subscription error:", err);
     }
