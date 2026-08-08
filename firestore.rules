@@ -1,188 +1,223 @@
 rules_version = '2';
 
-// ============================================================================
-// SupEarn — Firestore Security Rules
-// Deploy via: firebase deploy --only firestore:rules
-//
-// Model:
-//   - Every user (Telegram or temporary web guest) authenticates via
-//     Firebase Anonymous Auth. Their document lives at users/{firebaseUid}
-//     — firebaseUid IS the document ID, matching the current firestore.js.
-//     telegramId is stored only as plain data on the document.
-//   - Admins authenticate via email/password and are provisioned with a
-//     users/{their-own-uid} document carrying role:"admin".
-//   - redeemRequests / taskCompletions both carry a `firebaseUid` field so
-//     ownership can be checked directly on the document.
-//   - referrals/{telegramId} remains telegramId-keyed end-to-end (referral
-//     links are telegramId-based) but stores the referred user's
-//     firebaseUid for ownership checks.
-//   - tasks/{taskId} are admin-managed; any signed-in user may read them,
-//     only admins may create/update/delete them.
-// ============================================================================
-
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ------------------------------------------------------------------
+    // ============================================================
     // HELPERS
-    // ------------------------------------------------------------------
+    // ============================================================
+
     function isSignedIn() {
       return request.auth != null;
     }
 
     function isAdmin() {
-      return isSignedIn() &&
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == "admin";
+      return isSignedIn()
+        && exists(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        )
+        && get(
+          /databases/$(database)/documents/users/$(request.auth.uid)
+        ).data.role == "admin";
     }
 
-    // ------------------------------------------------------------------
-    // USERS — keyed by firebaseUid
-    // ------------------------------------------------------------------
-    match /users/{firebaseUid} {
-      allow read: if isSignedIn() && (
-        resource.data.firebaseUid == request.auth.uid || isAdmin()
-      );
 
-      // First-ever write for this Firebase session: only the session
-      // itself may create its own doc, and only with a fresh wallet.
+    // ============================================================
+    // USERS
+    // Document ID = Firebase UID
+    // ============================================================
+
+    match /users/{firebaseUid} {
+
+      // Owner or admin can read.
+      allow read: if isSignedIn()
+        && (
+          request.auth.uid == firebaseUid
+          || isAdmin()
+        );
+
+
+      // New normal user.
       allow create: if isSignedIn()
         && request.auth.uid == firebaseUid
         && request.resource.data.firebaseUid == request.auth.uid
         && request.resource.data.role == "user"
         && request.resource.data.coinBalance == 0
         && request.resource.data.totalEarnedCoins == 0
-        && request.resource.data.totalRedeemedCoins == 0
-        && request.resource.data.dailyStreak == 0
-        && request.resource.data.pendingRedeemId == null;
+        && request.resource.data.totalRedeemedCoins == 0;
 
-      // Path A — the owner updating their own profile/wallet fields.
-      // Identity fields are frozen; balance can never go negative; the
-      // two lifetime-total fields can only ever increase from this path.
+
+      // Existing reward system requires the user's own client
+      // to update wallet fields for AdsGram/Adeasly/daily rewards.
+      //
+      // Identity and role cannot be changed.
+      // Wallet cannot become negative.
       allow update: if isSignedIn()
-        && resource.data.firebaseUid == request.auth.uid
-        && request.resource.data.firebaseUid == resource.data.firebaseUid
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.telegramId == resource.data.telegramId
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-             "username", "displayName", "firstName", "lastName", "profilePhoto", "languageCode",
-             "coinBalance", "totalEarnedCoins", "totalRedeemedCoins",
-             "lastRewardedAdTime", "lastDailyLogin", "dailyStreak",
-             "pendingRedeemId", "completedCustomTasks", "updatedAt"
-           ])
-        && request.resource.data.coinBalance >= 0
-        && request.resource.data.totalEarnedCoins >= resource.data.totalEarnedCoins
-        && request.resource.data.totalRedeemedCoins >= resource.data.totalRedeemedCoins
+        && (
+          (
+            request.auth.uid == firebaseUid
+            && resource.data.firebaseUid == request.auth.uid
+            && request.resource.data.firebaseUid
+                == resource.data.firebaseUid
+            && request.resource.data.role
+                == resource.data.role
+            && request.resource.data.telegramId
+                == resource.data.telegramId
+            && request.resource.data.createdAt
+                == resource.data.createdAt
+            && request.resource.data.coinBalance >= 0
+            && request.resource.data.totalEarnedCoins
+                >= resource.data.totalEarnedCoins
+            && request.resource.data.totalRedeemedCoins
+                >= resource.data.totalRedeemedCoins
+          )
+          ||
+          isAdmin()
+        );
 
-      // Path B — an admin resolving a redeem request for someone else:
-      // may only touch pendingRedeemId / coinBalance / totalRedeemedCoins
-      // (a rejection refund) plus updatedAt. Nothing else.
-      || (
-        isAdmin()
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
-             "pendingRedeemId", "coinBalance", "totalRedeemedCoins", "updatedAt"
-           ])
-      );
 
       allow delete: if false;
     }
 
-    // ------------------------------------------------------------------
-    // SETTINGS — publicly readable (needed at startup before sign-in
-    // settles), writable only by admins.
-    // ------------------------------------------------------------------
+
+    // ============================================================
+    // SETTINGS
+    // ============================================================
+
     match /settings/{docId} {
+
+      // App needs to read settings.
       allow read: if true;
+
+      // Only admin can modify settings.
       allow write: if isAdmin();
     }
 
-    // ------------------------------------------------------------------
-    // TASKS — admin-managed. Any signed-in user (Telegram or web guest)
-    // may read tasks (the app's own queries filter to active ones; a
-    // direct-by-ID read is how the admin panel edits hidden tasks).
-    // ------------------------------------------------------------------
+
+    // ============================================================
+    // TASKS
+    // ============================================================
+
     match /tasks/{taskId} {
+
+      // Signed-in users can read tasks.
+      // Admin can also read hidden/inactive tasks.
       allow read: if isSignedIn();
+
+      // Only admin can manage tasks.
       allow create, update, delete: if isAdmin();
     }
 
-    // ------------------------------------------------------------------
-    // REDEEM REQUESTS
-    // ------------------------------------------------------------------
-    match /redeemRequests/{requestId} {
-      allow read: if isAdmin() || (
-        isSignedIn() && resource.data.firebaseUid == request.auth.uid
-      );
 
-      allow create: if isSignedIn()
-        && request.resource.data.firebaseUid == request.auth.uid
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.pendingRedeemId == null
-        && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coinBalance >= request.resource.data.amount
-        && request.resource.data.status == "pending"
-        && request.resource.data.amount is int
-        && request.resource.data.amount > 0
-        && request.resource.data.redeemType in ["upi", "giftcard"]
-        && (
-             (request.resource.data.redeemType == "upi" && request.resource.data.upiId is string && request.resource.data.upiId.size() > 3)
-             ||
-             (request.resource.data.redeemType == "giftcard" && request.resource.data.email is string && request.resource.data.giftCardBrand in ["amazon", "flipkart", "myntra"])
-           );
+    // ============================================================
+    // TASK COMPLETIONS
+    // Existing AdsGram / Adeasly / SupEarn system
+    // ============================================================
 
-      allow update: if false;
-
-      allow delete: if isAdmin();
-    }
-
-    // ------------------------------------------------------------------
-    // TASK COMPLETIONS — one document per (user, task); write-once, so a
-    // task can never be rewarded twice for the same user. For admin-
-    // managed SupEarn tasks, the reward amount must match the task's own
-    // declared reward — this is what stops a client from crediting an
-    // arbitrary amount by fabricating a taskCompletions document.
-    // ------------------------------------------------------------------
     match /taskCompletions/{completionId} {
-      allow read: if isAdmin() || (
-        isSignedIn() && resource.data.firebaseUid == request.auth.uid
-      );
 
+      // User can read own completion.
+      // Admin can read all.
+      allow read: if isAdmin()
+        || (
+          isSignedIn()
+          && resource.data.firebaseUid == request.auth.uid
+        );
+
+
+      // Existing client-side reward transaction.
+      //
+      // Every completion must belong to the authenticated user.
+      // Reward must be a positive integer.
+      //
+      // For SupEarn tasks, the reward must match the task's
+      // configured reward and the task must currently be active.
       allow create: if isSignedIn()
         && request.resource.data.firebaseUid == request.auth.uid
         && request.resource.data.reward is int
         && request.resource.data.reward > 0
+        && request.resource.data.taskId is string
+        && request.resource.data.provider is string
         && (
-             request.resource.data.provider != "SupEarn"
-             || (
-               get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.active == true
-               && get(/databases/$(database)/documents/tasks/$(request.resource.data.taskId)).data.reward == request.resource.data.reward
-             )
-           );
+          request.resource.data.provider != "SupEarn"
+          ||
+          (
+            exists(
+              /databases/$(database)/documents/tasks/$(request.resource.data.taskId)
+            )
+            && get(
+              /databases/$(database)/documents/tasks/$(request.resource.data.taskId)
+            ).data.active == true
+            && get(
+              /databases/$(database)/documents/tasks/$(request.resource.data.taskId)
+            ).data.reward == request.resource.data.reward
+          )
+        );
 
+
+      // Completion is permanent.
       allow update, delete: if false;
     }
 
-    // ------------------------------------------------------------------
-    // REFERRALS — owned by the referred user (telegramId-keyed; referral
-    // links stay telegramId-based). Only tasksCompleted and bonusPaid may
-    // ever change after creation, and only by the owner.
-    // ------------------------------------------------------------------
-    match /referrals/{referralId} {
-      allow read: if isAdmin() || (
-        isSignedIn() && resource.data.firebaseUid == request.auth.uid
-      );
 
+    // ============================================================
+    // REDEEM REQUESTS
+    // ============================================================
+
+    match /redeemRequests/{requestId} {
+
+      // Owner or admin can read.
+      allow read: if isAdmin()
+        || (
+          isSignedIn()
+          && resource.data.firebaseUid == request.auth.uid
+        );
+
+
+      // User creates their own pending request.
       allow create: if isSignedIn()
         && request.resource.data.firebaseUid == request.auth.uid
-        && request.resource.data.referrerId is string
-        && request.resource.data.referrerId != referralId
+        && request.resource.data.status == "pending"
+        && request.resource.data.amount is int
+        && request.resource.data.amount > 0;
+
+
+      // Existing app resolves requests through its transaction/admin flow.
+      allow update: if false;
+
+
+      // Only admin can delete/resolve.
+      allow delete: if isAdmin();
+    }
+
+
+    // ============================================================
+    // REFERRALS
+    // Document ID = Telegram ID
+    // ============================================================
+
+    match /referrals/{telegramId} {
+
+      // Signed-in users can read.
+      allow read: if isSignedIn();
+
+
+      // User creates their own referral record.
+      allow create: if isSignedIn()
+        && request.resource.data.telegramId == telegramId
+        && request.resource.data.firebaseUid == request.auth.uid
         && request.resource.data.tasksCompleted == 0
         && request.resource.data.bonusPaid == false;
 
+
+      // User can update their own referral record.
       allow update: if isSignedIn()
         && resource.data.firebaseUid == request.auth.uid
-        && request.resource.data.referrerId == resource.data.referrerId
-        && request.resource.data.firebaseUid == resource.data.firebaseUid
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(["tasksCompleted", "bonusPaid"]);
+        && request.resource.data.firebaseUid
+            == resource.data.firebaseUid
+        && request.resource.data.telegramId
+            == resource.data.telegramId;
+
 
       allow delete: if false;
     }
