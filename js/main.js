@@ -161,18 +161,27 @@ function wireAdminGesture() {
 }
 
 function waitForFirstValue(subscribeFn, stateKey) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let resolved = false;
-    subscribeFn((value) => {
-      appState.set(stateKey, value);
-      if (!resolved) {
-        resolved = true;
-        resolve(value);
+
+    subscribeFn(
+      (value) => {
+        appState.set(stateKey, value);
+
+        if (!resolved) {
+          resolved = true;
+          resolve(value);
+        }
+      },
+      (err) => {
+        if (!resolved) {
+          resolved = true;
+          reject(err);
+        }
       }
-    });
+    );
   });
 }
-
 async function boot() {
   setSplashStatus("Starting up…");
  if (isInsideTelegram()) {
